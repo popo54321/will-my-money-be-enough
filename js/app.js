@@ -1090,7 +1090,9 @@
   function renderLevels(id, head, desc, cur, vars){
     const LV = LEVELS[head], pos = LV.indexOf(cur);
     $(id).innerHTML = LV.map((st, i) => '<li' + (st === cur ? ' class="here"' : '') + '><span class="lvdot" style="background:' + ST_COL[st] + '"></span><div><p class="lvname">' +
-      esc(t(head + '.' + st + '.h')) + (st === cur ? '<span class="lvhere">' + esc(t('lv.here')) + '</span>' : '') + '</p><p class="lvdesc">' + esc(t(desc + (LV.length - i), vars)) + '</p></div></li>').join('');
+      esc(t(head + '.' + st + '.h')) + (st === cur ? '<span class="lvhere">' + esc(t('lv.here')) + '</span>' : '') + '</p><p class="lvdesc">' + esc(t(desc + (LV.length - i), vars)) + '</p>' +
+      // a kind word under Rock solid: from here, money isn't the thing to worry about
+      (head === 'fut' && st === 'gold' ? '<p class="lvnote">' + esc(t('lv.f4.note')) + '</p>' : '') + '</div></li>').join('');
     $(id + 'Foot').textContent = pos < 0 ? '' : (pos === 0 ? t('lv.top') : t(pos === 1 ? 'lv.step1' : 'lv.steps', {n: pos}));
   }
   function stPill(id, st){

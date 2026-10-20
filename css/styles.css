@@ -280,3 +280,4 @@ h2.big::before{content:"";flex:none;width:14px;height:14px;border-radius:50% 0 5
 .lvdesc{font-size:.82rem;color:var(--muted);}
 .lvfoot{margin:8px 0 0;font-size:.85rem;font-weight:700;color:var(--gold-ink);}
 .lvfoot:empty{display:none;}
+.lvnote{margin:6px 0 0 !important;font-size:.82rem;font-style:italic;color:var(--keep-ink);}
