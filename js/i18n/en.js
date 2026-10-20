@@ -47,7 +47,7 @@ MMA.i18n.en = {
   'rk.monk': 'Monk', 'rk.monk.d': 'Goes without today in calm meditation, but the long journey is completely safe.',
   'rk.knight': 'Silver Knight', 'rk.knight.d': 'Shining armour and a full belly, but the quest isn’t secure yet. A little more gold in the chest would do it.',
   'rk.priest': 'High Priest', 'rk.priest.d': 'Devoted and well prepared. The future is safe and today is in order.',
-  'rk.warlock': 'Warlock', 'rk.warlock.d': 'Your pact guarantees the future, but you’ll be doing your patron’s dirty work forever.',
+  'rk.steward': 'Faithful Steward', 'rk.steward.d': 'You guard the royal treasury faithfully, so the future is completely safe. But today you work hard, with little left over for yourself.',
   'rk.king': 'The King', 'rk.king.d': 'Strong today and safe tomorrow. Only the fiercest storms could shake your crown.',
   'rk.archmage': 'Archmage', 'rk.archmage.d': 'A master of the long game. Today is in order and the future survives any storm.',
   'rk.emperor': 'The Emperor', 'rk.emperor.d': 'Nothing to worry about, today or tomorrow.',

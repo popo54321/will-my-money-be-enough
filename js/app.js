@@ -857,7 +857,7 @@
     {r: 1, h: 1, k: 'wanderer'}, {r: 1, h: 2, k: 'smith'}, {r: 2, h: 1, k: 'pirate'}, {r: 1, h: 3, k: 'rat'}, {r: 2, h: 2, k: 'hedge'},
     {r: 3, h: 1, k: 'prince'}, {r: 1, h: 4, k: 'bard'}, {r: 2, h: 3, k: 'squire'}, {r: 3, h: 2, k: 'pilgrim'}, {r: 4, h: 1, k: 'dragon'},
     {r: 1, h: 5, k: 'lord'}, {r: 2, h: 4, k: 'ranger'}, {r: 3, h: 3, k: 'druid'}, {r: 4, h: 2, k: 'monk'}, {r: 2, h: 5, k: 'knight'},
-    {r: 3, h: 4, k: 'priest'}, {r: 4, h: 3, k: 'warlock'}, {r: 3, h: 5, k: 'king'}, {r: 4, h: 4, k: 'archmage'}, {r: 4, h: 5, k: 'emperor'},
+    {r: 3, h: 4, k: 'priest'}, {r: 4, h: 3, k: 'steward'}, {r: 3, h: 5, k: 'king'}, {r: 4, h: 4, k: 'archmage'}, {r: 4, h: 5, k: 'emperor'},
     // level 21 sits above The Emperor and is never reached through the two ladders alone, see renderAdventurer()
     {r: 4, h: 5, k: 'god'}];
   const GOD = RANKS.length - 1, TOP = RANKS.length - 1;
