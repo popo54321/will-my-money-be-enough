@@ -424,6 +424,38 @@
     });
   }
 
+  /* ---------- the next step up on Your future ---------- */
+  // The Your future level for a changed plan at the same live-to age (a smaller market test, to stay quick).
+  function futureLevel(pp, L){
+    const R2 = compute(pp, pp.years, L), q2 = R2.q;
+    if (!ok(q2, R2.keep, R2.nL)) return 'bad';
+    const c = monteCarlo(q2, R2.nL, 400, false).chance;
+    if (c < 0.75) return 'ok';
+    if (!(c >= 0.99 && ok(q2, R2.shock, R2.nL))) return 'good';
+    const G = godTest(pp);
+    return G.ok ? 'dyn' : 'gold';
+  }
+  // Two ways to reach the next level up: retiring later (up to 15 years), or spending less in retirement.
+  function nextStep(p, L, fs){
+    const LV = LEVELS.fut, i = LV.indexOf(fs);
+    if (i <= 0) return null;
+    const target = LV[i - 1], reaches = pp => LV.indexOf(futureLevel(pp, L)) <= i - 1;
+    let age = null;
+    for (let ra = p.retire + 1; ra <= Math.min(p.retire + 15, 105, L - 1); ra++){
+      if (reaches(Object.assign({}, p, {retire: ra, years: ra - p.age}))){ age = ra; break; }
+    }
+    // spending scaled down (later spending steps too), largest amount that still gets there
+    const scaled = f => Object.assign({}, p, {spend: p.spend * f, steps: p.steps.map(st => ({age: st.age, amt: st.amt * f}))});
+    let spend = null;
+    if (p.spend > 0 && reaches(scaled(0))){
+      let lo = 0, hi = 1;
+      for (let k = 0; k < 12; k++){ const mid = (lo + hi) / 2; if (reaches(scaled(mid))) lo = mid; else hi = mid; }
+      const y = Math.floor(p.spend * lo / 10) * 10;
+      if (y > 0 && y < p.spend) spend = y;
+    }
+    return {target, age, spend};
+  }
+
   /* ---------- God Emperor test ---------- */
   // With steady growth, could the pot pay for 5 times your retirement spending and still never shrink, to 120 and forever after?
   const GOD_X = 5;
@@ -866,6 +898,8 @@
   const tierBg = n => n === GOD ? GOD_BG : TIER_BG[Math.min(3, Math.floor((n - 1) / 5))];
   let ITEMS = [], lastQuest;
   function steps(n, total){ let h = ''; for (let i = 1; i <= total; i++) h += '<span' + (i <= n ? ' class="on"' : '') + '></span>'; return h; }
+  // the money-today ladder, 1 to 5, from what's left each month and the count of Healthy / Okay / Needs attention
+  const healthStep = (left, cnt) => left < 0 ? 1 : (cnt.bad >= 3 ? 2 : (cnt.bad >= 1 ? 3 : (cnt.ok > cnt.good ? 4 : 5)));
   function renderAdventurer(p, R, c){
     const q = R.q, nL = R.nL, L = R.L;
     let rl = null, hl = null;
@@ -873,13 +907,7 @@
       if (!c.steadyOk) rl = 1;
       else if (lastChance !== null) rl = lastChance < 0.75 ? 2 : ((lastChance >= 0.99 && ok(q, R.shock, nL)) ? 4 : 3);
     }
-    if (c.I !== null && c.S !== null){
-      if (c.left < 0) hl = 1;
-      else if (c.cnt.bad >= 3) hl = 2;
-      else if (c.cnt.bad >= 1) hl = 3;
-      else if (c.cnt.ok > c.cnt.good) hl = 4;
-      else hl = 5;
-    }
+    if (c.I !== null && c.S !== null) hl = healthStep(c.left, c.cnt);
     // no adventurer until every question is answered
     let n = (rl && hl && !c.missing.length) ? rankOf(rl, hl) : 0;
     const emperor = rankOf(4, 5);
@@ -960,6 +988,7 @@
       '</span><span class="rl">' + esc(t('adv.lv', {n: i + 1})) + '</span><span class="rn">' + esc(t('rk.' + rk.k)) + '</span>' + (i + 1 === n ? '<span class="you">' + esc(t('adv.you')) + '</span>' : '') + '</button>').join('');
     renderRankInfo();
     updateSocial();
+    return {hl, n};
   }
   // tap any adventurer in the grid to read about it
   let rankSel = null;
@@ -1082,7 +1111,7 @@
   }
 
   /* ---------- summary page ---------- */
-  let lastChance = null, lastMC = null;
+  let lastChance = null, lastMC = null, life90 = null, nextHelp = null;
   const ST_COL = {dyn: 'var(--dyn)', gold: 'var(--gold)', good: 'var(--keep-soft)', ok: 'var(--s1)', bad: 'var(--s2)'};
   // "See all levels" under each At a glance card: every level, best first, with where you are and how far from the top
   // Your future has one more level at the top: the God Emperor's money test
@@ -1137,14 +1166,6 @@
     }
     else { fs = 'good'; fh = t('fut.good.h'); ft = t('fut.good.t', {L}); }
     $('scFutureH').textContent = fh; $('scFutureT').textContent = ft;
-    // A very long live-to age (over 100, or forever) is a much harder test and drags the level down.
-    // If the same plan lasts to 90 with steady growth, say so, so nobody thinks things are worse than they are.
-    let lifeNote = '';
-    if (goal && L > 100 && (fs === 'bad' || fs === 'ok') && p.retire < 90){
-      const q90 = makeModel(p, false);
-      if (ok(q90, run(q90, {stop: q90.H}), (90 - p.retire) * 12)) lifeNote = t('life.note', {L});
-    }
-    $('lifeNote').textContent = lifeNote; $('advLifeNote').textContent = lifeNote;
     $('scFuture').style.setProperty('--sc', ST_COL[fs] || 'var(--line)');
     // each row says which kind of market it assumes, so "never runs out" and a low chance don't look like they disagree
     const rainy = !goal ? '–' : (!lastMC ? '…' : (isFinite(lastMC.o10) ? t('goneAt', {a: ageAt(lastMC.o10, p)}) : t('fl.pastL', {L})));
@@ -1270,7 +1291,34 @@
     $('scToday').style.setProperty('--sc', ST_COL[ts] || 'var(--line)');
     $('smCounts').innerHTML = (total && I !== null && S !== null) ? ['good', 'ok', 'bad'].map(k => '<span style="background:' + ST_COL[k] + '">' + esc(t('cnt.' + k, {n: cnt[k]})) + '</span>').join('') : '';
     $('hideAmts').checked = ui.hideAmts;
-    renderAdventurer(p, R, {goal, steadyOk, I, S, left, cnt, missing, perfect: cnt.good > 0 && cnt.ok === 0 && cnt.bad === 0});
+    const perfect = cnt.good > 0 && cnt.ok === 0 && cnt.bad === 0;
+    const adv = renderAdventurer(p, R, {goal, steadyOk, I, S, left, cnt, missing, perfect});
+    // A very long live-to age (over 100, or forever) is a much harder test and drags the level down.
+    // Once the market test has also been run to 90 (life90), name the level and rank the same plan gets at 90,
+    // but only when that's actually better, so the note never promises what the slider won't show.
+    let lifeNote = '';
+    const LV = LEVELS.fut;
+    if (life90){
+      // "Can you afford what the plan needs?" also depends on the live-to age, so redo that one check at 90
+      const cnt90 = Object.assign({}, cnt), fitNow = ITEMS.find(i => i.key === 'Fit');
+      if (fitNow && cnt90[fitNow.st] !== undefined) cnt90[fitNow.st]--;
+      const fit90 = life90.payL === null ? 'bad' : (life90.steady ? 'good' : (left === null ? 'na' : (left >= life90.payL - p.X ? 'good' : 'bad')));
+      if (cnt90[fit90] !== undefined) cnt90[fit90]++;
+      const hl90 = (I !== null && S !== null) ? healthStep(left, cnt90) : null;
+      let n90 = (hl90 && !missing.length) ? rankOf(life90.rl, hl90) : 0;
+      if (n90 === rankOf(4, 5) && cnt90.good > 0 && cnt90.ok === 0 && cnt90.bad === 0 && R.god && R.god.ok) n90 = GOD;
+      if (LV.indexOf(life90.fs) < LV.indexOf(fs) || n90 > adv.n)
+        lifeNote = join([t('life.note', {L, lvl: t('fut.' + life90.fs + '.h')}), n90 ? t('life.rank', {n: n90, name: t('rk.' + RANKS[n90].k)}) : '', t('life.try')]);
+    }
+    $('lifeNote').textContent = lifeNote; $('advLifeNote').textContent = lifeNote;
+    // the next step up, worked out in the background, and a kind word for anyone below On track
+    let next = '';
+    if (nextHelp && (nextHelp.age || nextHelp.spend)){
+      const v = {lvl: t('fut.' + nextHelp.target + '.h'), a: nextHelp.age, y: money(nextHelp.spend || 0)};
+      next = t(nextHelp.age && nextHelp.spend ? 'nx.both' : (nextHelp.age ? 'nx.age' : 'nx.spend'), v);
+    }
+    $('nextNote').textContent = next;
+    $('cheerNote').textContent = goal && (fs === 'bad' || fs === 'ok') ? t('cheer.t', {d: dur(p.years * 12)}) : '';
   }
   const applyTab = () => {
     $('pageCalc').hidden = ui.tab !== 'calc'; $('pageSum').hidden = ui.tab !== 'sum';
@@ -1497,12 +1545,24 @@
     $('mcBusy').textContent = t('busy');
     $('mcFix').textContent = '';
     lastQuest = undefined;
+    life90 = null; nextHelp = null;
     clearTimeout(asyncTimer);
     asyncTimer = setTimeout(() => {
       const mcRes = monteCarlo(R.q, R.nL, 1000, true);
       renderMC(p, R, mcRes);
       lastChance = hasRetirementGoal(p) ? mcRes.chance : null;
       lastMC = hasRetirementGoal(p) ? mcRes : null;
+      if (hasRetirementGoal(p)){
+        const fsNow = !ok(R.q, R.keep, R.nL) ? 'bad' : (mcRes.chance < 0.75 ? 'ok' : (!(mcRes.chance >= 0.99 && ok(R.q, R.shock, R.nL)) ? 'good' : (R.god && R.god.ok ? 'dyn' : 'gold')));
+        nextHelp = nextStep(p, R.L, fsNow);
+      }
+      // the same plan, judged at 90: for the note that explains a level dragged down by a very long live-to age
+      if (hasRetirementGoal(p) && R.L > 100 && p.retire < 90){
+        const R90 = compute(p, p.years, 90), c90 = monteCarlo(R90.q, R90.nL, 1000, false).chance;
+        const steady90 = ok(R90.q, R90.keep, R90.nL), top90 = c90 >= 0.99 && ok(R90.q, R90.shock, R90.nL);
+        life90 = {steady: steady90, payL: payToLast(R90.q, R90.nL), rl: !steady90 ? 1 : (c90 < 0.75 ? 2 : (top90 ? 4 : 3)),
+          fs: !steady90 ? 'bad' : (c90 < 0.75 ? 'ok' : (top90 ? (R.god && R.god.ok ? 'dyn' : 'gold') : 'good'))};
+      }
       renderSummary(p, R);
       R.ages.forEach((a, i) => { if (a) $('ag' + i + 'e').textContent = hasRetirementGoal(p) ? Math.round(monteCarlo(a.q, a.nL, 300, false).chance * 100) + '%' : '–'; });
       renderPlans(true);

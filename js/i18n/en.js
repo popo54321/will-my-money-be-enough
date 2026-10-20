@@ -35,7 +35,7 @@ MMA.i18n.en = {
   'rk.smith': 'Blacksmith Apprentice', 'rk.smith.d': 'Learning the trade at the forge. Hard work and an empty purse, with no plan for the road yet.',
   'rk.pirate': 'Shipwrecked Pirate', 'rk.pirate.d': 'Your ship is taking on water, but you can still sail home if you fix it. Patch the hull first.',
   'rk.rat': 'Street Rat', 'rk.rat.d': 'Gets by on quick wits day to day, with nothing stashed away for later.',
-  'rk.hedge': 'Hedge Knight', 'rk.hedge.d': 'Dented shield and thin supplies. The quest could work, but one storm could knock you down.',
+  'rk.hedge': 'Hedge Knight', 'rk.hedge.d': 'Dented shield and thin supplies. The quest is still possible, but the risks are many.',
   'rk.prince': 'Exiled Prince', 'rk.prince.d': 'Your kingdom is secure, if you survive the exile and return to take it back. Steady your monthly coin first.',
   'rk.bard': 'Wandering Bard', 'rk.bard.d': 'Sings happily about today, but hasn’t packed for the road ahead.',
   'rk.squire': 'Young Squire', 'rk.squire.d': 'From minor nobility and still learning the ropes. The plan nearly works and today is a little tight.',
@@ -45,7 +45,7 @@ MMA.i18n.en = {
   'rk.ranger': 'Woodland Ranger', 'rk.ranger.d': 'Knows every trail and keeps a steady pace, but a long sluggish market could still turn you back.',
   'rk.druid': 'Grove Druid', 'rk.druid.d': 'Lives simply among the old trees. Not much to spare today, but the roots run deep.',
   'rk.monk': 'Monk', 'rk.monk.d': 'Goes without today in calm meditation, but the long journey is completely safe.',
-  'rk.knight': 'Silver Knight', 'rk.knight.d': 'Shining armour and a full belly, but the quest isn’t secure yet. A little more gold in the chest would do it.',
+  'rk.knight': 'Silver Knight', 'rk.knight.d': 'Brave and well fed today, but the quest isn’t safe yet. A little more gold in the chest would be great.',
   'rk.priest': 'High Priest', 'rk.priest.d': 'Devoted and well prepared. The future is safe and today is in order.',
   'rk.steward': 'Faithful Steward', 'rk.steward.d': 'You serve the realm with hard, honest work, so the future is completely safe. But for now you have only enough to get by.',
   'rk.king': 'The King', 'rk.king.d': 'Strong today and safe tomorrow. Only the fiercest storms could shake your crown.',
@@ -416,6 +416,12 @@ MMA.i18n.en = {
   'social.noImg': 'Your image is still being made. Wait a moment, then tap again to include it.',
   'm.p11': 'At a glance, Your future has five levels. Not on track yet: the money runs out too soon, or leaves less than you want to leave, even with steady growth. Close, but fragile: it lasts with steady growth, but in fewer than 3 of 4 market histories. On track: it lasts in at least 3 of 4. Rock solid: it lasts in 99 of 100, even after a fall in the first year of retirement. Dynastic Generational Wealth: Rock solid, and with steady growth the pot never shrinks in any month of retirement, even at 5 times your spending. “A bad run of markets” is the history that only 1 in 10 do worse than.',
   'lv.f4.note': 'If you’re here, don’t worry about reaching the very top. Your money is already safe, and there are bigger things in the world for you to care about now than your finances.',
-  'life.note': 'You’ve planned for your money to last to {L}. That’s a very long life, and it pulls your level down. With steady growth the same plan lasts to 90, so things are probably not this bad. Try the live-to slider at 90 to compare.',
-  'life.note.f': 'You’ve planned for your money to last forever. That’s a very long life, and it pulls your level down. With steady growth the same plan lasts to 90, so things are probably not this bad. Try the live-to slider at 90 to compare.'
+  'life.note': 'You’ve planned for your money to last to {L}, a very long life, and that pulls your level down. Planned to 90, the same plan would be “{lvl}”.',
+  'life.note.f': 'You’ve planned for your money to last forever, a very long life, and that pulls your level down. Planned to 90, the same plan would be “{lvl}”.',
+  'life.rank': 'You’d be Level {n} {name}.',
+  'life.try': 'Try the live-to slider at 90 to compare.',
+  'nx.both': 'To reach “{lvl}”, retire at {a}, or spend {y} a month in retirement (in today’s prices).',
+  'nx.age': 'To reach “{lvl}”, retire at {a}.',
+  'nx.spend': 'To reach “{lvl}”, spend {y} a month in retirement (in today’s prices).',
+  'cheer.t': 'It’s okay if life isn’t as rosy as you hoped. That’s life, and you’re doing your best. You still have {d} before you retire, so there’s time for the plan to get better. Keep going, and come back to this when you’re earning more and can change the plan.'
 };

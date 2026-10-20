@@ -27,7 +27,8 @@ A static, no-build web app: "Will My Money Be Enough?", a gamified retirement an
 
 ## Rules to keep
 1. **Every visible string goes through `t('key', {vars})`.** Add the key to all three language files. Thai and Chinese must be *localised*, not translated: use the phrases people actually use. Examples: ตลาดซบเซา / 行情低迷时 for "rainy years", ประกันสังคม / 医保 for public healthcare, กองทุนสำรองเลี้ยงชีพ, RMF, ThaiESG / 企业年金, 个人养老金 for workplace and tax-relief schemes.
-2. **English is British English and plain English.** No jargon unless there's no everyday word for it ("growth 2% lower", never "2 points").
+2. **Thai spacing follows the owner's style:** no space where a clause carries on (before และ, แต่, ถ้า, หรือ, จึง, เพราะ, ซึ่ง, โดย, ก็, แล้ว, เพื่อ); keep spaces only between separate sentences, after ๆ, around numbers and {placeholders}, between items in a list, and after a one-word answer such as "ได้ แต่…". The owner is a native speaker, so follow their edits.
+2b. **English is British English and plain English.** No jargon unless there's no everyday word for it ("growth 2% lower", never "2 points").
 3. **The Calculator tab holds every input; the Summary tab shows results only.** Summary rows have `rw<Key>`, `pt<Key>`, `av<Key>` and `at<Key>` ids. Their inputs live on the Calculator with `fd<Key>` field ids.
 4. **The shared image must never show level-up amounts.** `buildImage()` strips `.quest .qa` (when the quest has a target) and `.privrow`. Keep that when you change the Summary.
 5. **Blank boxes that show "None" count as 0.** Take-home pay and spending now show "–" because they're needed.
