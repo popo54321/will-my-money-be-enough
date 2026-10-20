@@ -29,7 +29,7 @@
   function applyStatic(){
     document.documentElement.lang = HTML_LANG[LANG] || 'en-GB';
     document.title = t('title');
-    document.querySelectorAll('[data-t]').forEach(el => { el.textContent = t(el.dataset.t); });
+    document.querySelectorAll('[data-t]').forEach(el => { el.textContent = t(el.dataset.t, el.dataset.n ? {n: el.dataset.n} : null); });
     document.querySelectorAll('label[data-l]').forEach(el => {
       el.innerHTML = esc(t(el.dataset.l)) + (el.dataset.h ? '<span class="hint">' + esc(t(el.dataset.h)) + '</span>' : '');
     });
@@ -56,20 +56,58 @@
     for (let i = 1; i <= 2; i++) s += '<div class="xrow"><div class="grid">' + fld('st' + i + 'Age', 'x.fromAge', '', {int: true, phRaw: '–'}) +
       fld('st' + i + 'Amt', 'x.spendMonth', '', {money: true, phRaw: '–'}) + '</div></div>';
     $('exSteps').innerHTML = s;
-    s = '';
-    for (let i = 1; i <= 3; i++) s += '<div class="xrow"><div class="grid four">' + fld('in' + i + 'Name', 'x.what', '', {text: true, ph: 'x.inc.ph'}) +
-      fld('in' + i + 'Amt', 'x.amtMonth', '', {money: true, phRaw: '–'}) + fld('in' + i + 'From', 'x.fromAge', '', {int: true, phRaw: '–'}) +
-      fld('in' + i + 'To', 'x.until', 'optional', {int: true, ph: 'x.forLife'}) +
-      sel('in' + i + 'Ix', 'x.ix', [['fixed', 'x.ix.fixed'], ['real', 'x.ix.real']]) +
-      sel('in' + i + 'Who', 'x.who', [['you', 'x.who.you'], ['partner', 'x.who.partner']], 'whose') + '</div></div>';
-    $('exInc').innerHTML = s;
-    s = '';
-    for (let i = 1; i <= 3; i++) s += '<div class="xrow"><div class="grid four">' + sel('on' + i + 'Dir', 'x.dir', [['out', 'x.out'], ['in', 'x.in']]) +
-      fld('on' + i + 'Amt', 'x.amt', '', {money: true, phRaw: '–'}) + fld('on' + i + 'Age', 'x.atAge', '', {int: true, phRaw: '–'}) +
-      fld('on' + i + 'Name', 'x.what', 'optional', {text: true, ph: 'x.one.ph'}) + '</div></div>';
-    $('exOne').innerHTML = s;
+    buildRows(1, 1);
     $('partner').innerHTML = fld('pAge', 'x.pAge', '', {int: true}) + fld('pRetire', 'x.pRetire', '', {int: true}) +
       fld('pStart', 'x.pStart', '', {money: true, phRaw: '0'}) + fld('pMonthly', 'x.pMonthly', '', {money: true, phRaw: '0'});
+  }
+  /* ---------- other income and one-off rows: add or remove as many as needed ---------- */
+  // The row counts live in two hidden inputs (nInc, nOne) so saves and plans remember them.
+  const MAX_ROWS = 10;
+  const ROWS = {
+    in: {box: 'exInc', count: 'nInc', title: 'x.incN', add: 'x.addInc', fields: ['Name', 'Amt', 'From', 'To', 'Ix', 'Who'],
+      html: i => fld('in' + i + 'Name', 'x.what', '', {text: true, ph: 'x.inc.ph'}) +
+        fld('in' + i + 'Amt', 'x.amtMonth', '', {money: true, phRaw: '–'}) + fld('in' + i + 'From', 'x.fromAge', '', {int: true, phRaw: '–'}) +
+        fld('in' + i + 'To', 'x.until', 'optional', {int: true, ph: 'x.forLife'}) +
+        sel('in' + i + 'Ix', 'x.ix', [['fixed', 'x.ix.fixed'], ['real', 'x.ix.real']]) +
+        sel('in' + i + 'Who', 'x.who', [['you', 'x.who.you'], ['partner', 'x.who.partner']], 'whose')},
+    on: {box: 'exOne', count: 'nOne', title: 'x.oneN', add: 'x.addOne', fields: ['Dir', 'Amt', 'Age', 'Name'],
+      html: i => sel('on' + i + 'Dir', 'x.dir', [['out', 'x.out'], ['in', 'x.in']]) +
+        fld('on' + i + 'Amt', 'x.amt', '', {money: true, phRaw: '–'}) + fld('on' + i + 'Age', 'x.atAge', '', {int: true, phRaw: '–'}) +
+        fld('on' + i + 'Name', 'x.what', 'optional', {text: true, ph: 'x.one.ph'})}
+  };
+  function buildRows(nInc, nOne){
+    [['in', nInc], ['on', nOne]].forEach(([k, n]) => {
+      const R = ROWS[k];
+      let h = '';
+      for (let i = 1; i <= n; i++) h += '<div class="xrow"><div class="xhead"><span data-t="' + R.title + '" data-n="' + i + '"></span>' +
+        '<button type="button" class="xrm" data-rm="' + k + '" data-i="' + i + '" data-t="x.rm"></button></div><div class="grid four">' + R.html(i) + '</div></div>';
+      if (n < MAX_ROWS) h += '<button type="button" class="btn2 xadd" data-add="' + k + '" data-t="' + R.add + '"></button>';
+      $(R.box).innerHTML = h;
+      $(R.count).value = n;
+    });
+  }
+  // the saved count, or for older saves (which always had 3 rows) the last row with anything typed in it
+  function rowCount(raw, k){
+    const n = parseInt(raw && raw[ROWS[k].count], 10);
+    if (n >= 0) return clamp(n, 0, MAX_ROWS);
+    let last = 1;
+    if (raw) for (let i = 1; i <= MAX_ROWS; i++) if (['Name', 'Amt', 'From', 'To', 'Age'].some(f => String(raw[k + i + f] || '').trim())) last = i;
+    return last;
+  }
+  function addRow(k){
+    const raw = readRaw(), n = rowCount(raw, k);
+    if (n >= MAX_ROWS) return;
+    raw[ROWS[k].count] = n + 1;
+    writeRaw(raw); render();
+    const first = $(k + (n + 1) + ROWS[k].fields[0]); if (first) first.focus();
+  }
+  function removeRow(k, i){
+    const raw = readRaw(), n = rowCount(raw, k), F = ROWS[k].fields;
+    // move the rows below up one, then drop the last
+    for (let j = i; j < n; j++) F.forEach(f => { raw[k + j + f] = raw[k + (j + 1) + f]; });
+    F.forEach(f => { delete raw[k + n + f]; });
+    raw[ROWS[k].count] = n - 1;
+    writeRaw(raw); render();
   }
   const CORE = {start: '10,000', monthly: '500', raise: '', infl: '3.5', growth: '7', growth2: '5', age: '30', retire: '60', spend: '1,500',
     s1: '25', s2: '5', yield: '2', vol1: '15', vol2: '10', fall: '30', pay: '', two: false};
@@ -87,16 +125,20 @@
     return o;
   }
   function writeRaw(raw){
+    const nInc = rowCount(raw, 'in'), nOne = rowCount(raw, 'on');
+    buildRows(nInc, nOne);
+    applyStatic();
     document.querySelectorAll('[data-save]').forEach(el => {
       const v = (raw && raw[el.id] !== undefined) ? raw[el.id] : DEFAULTS[el.id];
       if (el.type === 'checkbox') el.checked = !!v; else el.value = (v === undefined || v === null) ? '' : v;
       if (el.tagName === 'SELECT' && el.selectedIndex < 0) el.selectedIndex = 0;
     });
+    $('nInc').value = nInc; $('nOne').value = nOne;
   }
 
   /* ---------- UI state ---------- */
   const navLang = (navigator.language || 'en').toLowerCase();
-  const ui = {unit: 'real', touched: false, stopAge: null, live: 90, answers: {match: null, cash: null, debt: null, life: null},
+  const ui = {unit: 'cash', unitSet: false, touched: false, stopAge: null, live: 90, answers: {match: null, cash: null, debt: null, life: null},
     look: 'cream', tab: 'calc', hideAmts: false,
     lang: navLang.startsWith('th') ? 'th' : (navLang.startsWith('zh') ? 'zh' : 'en')};
   function loadAll(){
@@ -104,7 +146,8 @@
     try { saved = JSON.parse(localStorage.getItem(STORE) || '{}') || {}; } catch(e){ saved = {}; }
     writeRaw(saved.raw || null);
     if (saved.ui){
-      if (saved.ui.unit === 'cash') ui.unit = 'cash';
+      // actual future amounts are the default; keep today's prices only for people who picked it themselves
+      if (saved.ui.unitSet && (saved.ui.unit === 'real' || saved.ui.unit === 'cash')){ ui.unit = saved.ui.unit; ui.unitSet = true; }
       if (saved.ui.lang && I18N[saved.ui.lang]) ui.lang = saved.ui.lang;
       if (saved.ui.look === 'night') ui.look = 'night';
       if (saved.ui.tab === 'sum') ui.tab = 'sum';
@@ -138,7 +181,7 @@
     for (let i = 1; i <= 2; i++) if (has('st' + i + 'Age') && has('st' + i + 'Amt')) steps.push({age: g('st' + i + 'Age', 0), amt: Math.max(0, g('st' + i + 'Amt', 0))});
     steps.sort((a, b) => a.age - b.age);
     const incomes = [];
-    for (let i = 1; i <= 3; i++){
+    for (let i = 1; i <= MAX_ROWS; i++){
       const amt = Math.max(0, g('in' + i + 'Amt', 0));
       if (amt <= 0) continue;
       const who = two && raw['in' + i + 'Who'] === 'partner' ? 'partner' : 'you';
@@ -146,7 +189,7 @@
         from: g('in' + i + 'From', who === 'partner' ? pRetire : retire), to: has('in' + i + 'To') ? g('in' + i + 'To', 200) : null});
     }
     const oneoffs = [];
-    for (let i = 1; i <= 3; i++){
+    for (let i = 1; i <= MAX_ROWS; i++){
       const amt = Math.max(0, g('on' + i + 'Amt', 0));
       if (amt <= 0 || !has('on' + i + 'Age')) continue;
       oneoffs.push({amt: raw['on' + i + 'Dir'] === 'in' ? amt : -amt, age: g('on' + i + 'Age', 0), name: String(raw['on' + i + 'Name'] || '').trim()});
@@ -1466,6 +1509,10 @@
   $('tabSum').addEventListener('click', () => showTab('sum'));
   $('goCalc').addEventListener('click', () => showTab('calc'));
   $('imgBtn').addEventListener('click', saveImage);
+  $('extras').addEventListener('click', e => {
+    const a = e.target.closest('[data-add]'), r = e.target.closest('[data-rm]');
+    if (a) addRow(a.dataset.add); else if (r) removeRow(r.dataset.rm, +r.dataset.i);
+  });
   $('hideAmts').addEventListener('change', () => { ui.hideAmts = $('hideAmts').checked; saveAll(); scheduleImage(); });
   $('rankGrid').addEventListener('click', e => {
     const b = e.target.closest('button[data-n]'); if (!b) return;
@@ -1487,7 +1534,7 @@
     if (window.Chart && potChart) buildCharts();
     render();
   });
-  $('unitSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; ui.unit = b.dataset.v; render(); });
+  $('unitSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; ui.unit = b.dataset.v; ui.unitSet = true; render(); });
   document.querySelectorAll('.yn').forEach(g => g.addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
     const k = g.dataset.key; ui.answers[k] = ui.answers[k] === b.dataset.v ? null : b.dataset.v; render();

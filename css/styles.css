@@ -17,6 +17,8 @@
 }
 html{background:var(--bg);scroll-padding-top:env(safe-area-inset-top,0px);}
 *,*::before,*::after{box-sizing:inherit;}
+/* the hidden attribute always wins, even over layout rules like .grid{display:grid} */
+[hidden]{display:none !important;}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Nunito","Noto Sans Thai","Noto Sans SC",system-ui,-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%;}
 main{max-width:760px;margin:0 auto;padding:28px 18px 56px;}
 h1{font-family:"Nunito","Noto Sans Thai","Noto Sans SC",system-ui,-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;font-weight:800;font-size:clamp(1.85rem,6vw,2.5rem);line-height:1.12;letter-spacing:-0.01em;margin:0 0 12px;max-width:18ch;}
@@ -261,3 +263,7 @@ h2.big::before{content:"";flex:none;width:14px;height:14px;border-radius:50% 0 5
 .social[hidden],.social a[hidden]{display:none;}
 .social a{display:inline-flex;align-items:center;height:36px;padding:0 14px;border-radius:18px;border:1px solid var(--line);background:var(--surface);color:var(--keep-ink);font-weight:700;font-size:.85rem;text-decoration:none;}
 .social .note{flex-basis:100%;order:9;margin:0;}
+/* other income and one-off rows: each has a title and a remove button, with an add button after the last */
+.xhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:0 0 8px;font-size:.88rem;font-weight:700;}
+.xrm{background:none;border:0;padding:4px 0;color:var(--s2-ink);font:inherit;font-size:.82rem;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
+.xadd{margin:10px 0 4px;}

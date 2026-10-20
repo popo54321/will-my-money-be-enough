@@ -378,5 +378,10 @@ MMA.i18n.en = {
   'adv.combo': 'Retirement: {r}. Money life today: {h}.',
   'adv.comboGod': 'The Emperor, plus every check Healthy and a pot that never shrinks, even at 5 times the spending.',
   'adv.tap': 'Tap any adventurer to read about them.',
-  'mc.n.f': 'With markets going up and down around the same averages, it never runs out in {n} of 1,000 histories.'
+  'mc.n.f': 'With markets going up and down around the same averages, it never runs out in {n} of 1,000 histories.',
+  'x.addInc': '+ Add income',
+  'x.addOne': '+ Add a one-off amount',
+  'x.rm': 'Remove',
+  'x.incN': 'Income {n}',
+  'x.oneN': 'Amount {n}'
 };

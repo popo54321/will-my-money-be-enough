@@ -44,9 +44,10 @@ Libraries load from a CDN, with versions pinned: Chart.js 4.4.1 (jsDelivr), html
 
 ## How the maths works (short version)
 
-- **Today's prices:** everything runs month by month, in today's prices. Growth before and after retirement, and fees, are turned into a monthly rate after inflation.
+- **Today's prices:** everything runs month by month, in today's prices. The page shows actual future amounts by default, because that's what people expect to see; "What it buys today" is one tap away. Growth before and after retirement, and fees, are turned into a monthly rate after inflation.
 - **Paying in:** your monthly investing is a fixed cash amount unless you set a yearly raise, so inflation shrinks it over time.
 - **Retirement:** each month you take out your spending, minus other income, plus tax if you set it.
+- **Other income and one-off amounts:** add or remove rows as needed, up to 10 of each.
 - **Market test:** 1,000 seeded random histories, built from your growth rates and yearly ups and downs. They're the same every run, so results don't jump about as you type.
 - **Keep going forever:** the live-to slider runs to 120, then one more step means forever. The page follows the money for 100 years after retirement; by then nothing changes, so the rest is worked out exactly: the money never runs out if the pot earns at least what you take out each month, otherwise the page gives the age it runs out, however far away.
 - **Adventurer rank:** two ladders put together.

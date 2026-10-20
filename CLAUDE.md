@@ -38,6 +38,8 @@ A static, no-build web app: "Will My Money Be Enough?", a gamified retirement an
 10. **Ranks:** no adventurer until every Summary question is answered (`missing` in `renderSummary()`). Follow-up questions are greyed out until the question they follow is answered. Level 21 (God Emperor) is never reached through the ladders alone.
 
 ## Gotchas
+- **Rows you can add:** other income (`in<N>…`) and one-off amounts (`on<N>…`) are built by `buildRows()`; their counts sit in the hidden inputs `nInc` and `nOne`, so saves and plans remember them. `rowCount()` reads older saves that always had 3 rows.
+- **Amounts shown:** actual future amounts are the default (`ui.unit = 'cash'`); a saved "today's prices" choice is kept only when `ui.unitSet` says the person picked it.
 - **Saved data:** `localStorage` keys are `paying-in-stop-v4` (inputs and UI state) and `paying-in-plans-v1` (saved plans). Bump the version if the saved shape changes.
 - **Inside claude.ai:** `window.claude.use('downloads')` provides saving, and `navigator.share` is blocked. Standalone, `saveBlob()` uses a normal download link and Share uses `navigator.share`. `IN_CLAUDE` switches between the two.
 - **Sharing needs a fresh tap:** `navigator.share` must be called directly from the tap, before any `await`. That's why `scheduleImage()` pre-builds the PNG.
