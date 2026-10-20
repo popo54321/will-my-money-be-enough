@@ -58,7 +58,9 @@
     $('exSteps').innerHTML = s;
     buildRows(1, 1);
     $('partner').innerHTML = fld('pAge', 'x.pAge', '', {int: true}) + fld('pRetire', 'x.pRetire', '', {int: true}) +
-      fld('pStart', 'x.pStart', '', {money: true, phRaw: '0'}) + fld('pMonthly', 'x.pMonthly', '', {money: true, phRaw: '0'});
+      fld('pStart', 'x.pStart', '', {money: true, phRaw: '0'}) + fld('pMonthly', 'x.pMonthly', '', {money: true, phRaw: '0'}) +
+      fld('pGrowth', 'x.pGrowth', 'f.beforeInfl', {suf: '%', ph: 'x.same'}) + fld('pGrowth2', 'x.pGrowth2', 'f.beforeInfl', {suf: '%', ph: 'x.same'}) +
+      '<p class="note" id="blendNote" style="grid-column:1/-1;margin:-6px 0 0"></p>';
   }
   /* ---------- other income and one-off rows: add or remove as many as needed ---------- */
   // The row counts live in two hidden inputs (nInc, nOne) so saves and plans remember them.
@@ -197,7 +199,7 @@
       if (amt <= 0 || !has('on' + i + 'Age')) continue;
       oneoffs.push({amt: raw['on' + i + 'Dir'] === 'in' ? amt : -amt, age: g('on' + i + 'Age', 0), name: String(raw['on' + i + 'Name'] || '').trim()});
     }
-    return {
+    return blendGrowth({
       start: Math.max(0, g('start', 0)), X: Math.max(0, g('monthly', 0)), raise: clamp(g('raise', 0), -10, 20) / 100,
       infl: clamp(g('infl', 0), 0, 25) / 100, growth: clamp(g('growth', 0), -20, 40) / 100, growthR: clamp(g('growth2', 0), -20, 40) / 100,
       age, years, retire, badRetire, noRetire, spend: Math.max(0, g('spend', 0)),
@@ -205,9 +207,37 @@
       fees: clamp(g('fees', 0), 0, 10) / 100, tax: clamp(g('tax', 0), 0, 90) / 100, legacy: Math.max(0, g('legacy', 0)),
       steps, incomes, oneoffs,
       two, pAge, pRetire, badPartner, pStart: two ? Math.max(0, g('pStart', 0)) : 0, pX: two ? Math.max(0, g('pMonthly', 0)) : 0,
+      pGrowth: two && has('pGrowth') ? clamp(g('pGrowth', 0), -20, 40) / 100 : null, pGrowthR: two && has('pGrowth2') ? clamp(g('pGrowth2', 0), -20, 40) / 100 : null,
       yld: clamp(g('yield', 0), 0, 30) / 100, vol1: clamp(g('vol1', 15), 0, 60) / 100, vol2: clamp(g('vol2', 10), 0, 60) / 100,
       fall: clamp(g('fall', 30), 0, 95) / 100, pay: Math.max(0, g('pay', 0))
-    };
+    });
+  }
+  // Two people can invest differently. The model keeps one pot, so it uses one combined growth rate:
+  // before your retirement, the single rate that gives the same pot at your retirement as growing each person's
+  // money at their own rate (steady growth); after it, the two rates weighted by what each person has by then.
+  function blendGrowth(p){
+    p.blend = false;
+    if (!p.two || (p.pGrowth === null && p.pGrowthR === null)) return p;
+    const gP = p.pGrowth === null ? p.growth : p.pGrowth, gPR = p.pGrowthR === null ? p.growthR : p.pGrowthR;
+    if (gP === p.growth && gPR === p.growthR) return p;
+    const H = p.years * 12, H2 = Math.max(0, (p.pRetire - p.pAge) * 12);
+    const mr = gr => Math.pow((1 + gr) * (1 - p.fees) / (1 + p.infl), 1 / 12) - 1;
+    const u = m => Math.pow(1 + p.raise, Math.floor(m / 12)) / Math.pow(1 + p.infl, (m + 1) / 12);
+    const fv = (r, start, x, stop) => { let P = start; for (let m = 0; m < H; m++){ P += P * r; if (m < stop) P += x * u(m); } return P; };
+    const you = fv(mr(p.growth), p.start, p.X, H), them = fv(mr(gP), p.pStart, p.pX, H2);
+    let rA;
+    if (you + them > 0){
+      const target = you + them;
+      let lo = -0.05, hi = 0.05;
+      for (let k = 0; k < 60; k++){ const mid = (lo + hi) / 2; if (fv(mid, p.start, p.X, H) + fv(mid, p.pStart, p.pX, H2) < target) lo = mid; else hi = mid; }
+      rA = (lo + hi) / 2;
+    } else rA = mr((p.growth + gP) / 2);
+    const w = you + them > 0 ? them / (you + them) : 0.5;
+    p.ownGrowth = p.growth; p.ownGrowthR = p.growthR;
+    p.growth = Math.pow(1 + rA, 12) * (1 + p.infl) / (1 - p.fees) - 1;
+    p.growthR = (1 - w) * p.growthR + w * gPR;
+    p.blend = true;
+    return p;
   }
   function extrasCount(p){
     let n = 0;
@@ -1528,6 +1558,7 @@
     $('retire').disabled = p.noRetire;
     unitCash = ui.unit === 'cash';
     $('partner').hidden = !p.two;
+    $('blendNote').textContent = p.blend && (Math.abs(p.growth - p.ownGrowth) > 5e-4 || Math.abs(p.growthR - p.ownGrowthR) > 5e-4) ? t('x.blend', {a: pct(p.growth), b: pct(p.growthR)}) : '';
     document.querySelectorAll('.whose').forEach(el => el.hidden = !p.two);
     const n = extrasCount(p);
     $('exCount').textContent = n ? t('ex.count', {n}) : '';

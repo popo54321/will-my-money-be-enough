@@ -192,7 +192,7 @@ MMA.i18n.en = {
   'm.p4': 'Scenario 3 stops all investing the month Scenario 1 is reached, lets the pot grow on its own, and checks when it gets big enough that your monthly investing would be under the Scenario 2 line. Scenarios 1 and 2 after your retirement age assume you keep investing and take nothing out.',
   'm.p5': 'After retirement, each month you take out your spending minus any other income, plus tax on that if you set it. Your spending stays the same in today’s prices, so it rises in cash terms with inflation every year. Other income set to rise with prices does the same; income set as a fixed amount stops rising once it starts, so it buys a little less each year. Other income bigger than your spending isn’t added to the pot. Cash payouts (dividends and interest) are part of the growth rate, not on top of it.',
   'm.p6': '“On track” means the money lasts up to the age on the “Live to age” slider and leaves at least the amount you want to leave. The “Enough” point is the earliest age you could stop investing and still be on track.',
-  'm.p7': 'With two people, both pots are added together and spending starts when you retire. Your partner keeps investing until their own retirement age, unless you stop investing early, which stops both. Ages on the page are yours.',
+  'm.p7': 'With two people, both pots are added together and spending starts when you retire. Your partner keeps investing until their own retirement age, unless you stop investing early, which stops both. Ages on the page are yours. If you each invest differently, add your partner’s growth rates: the page combines the two into one rate, so the pot at your retirement comes out the same as growing each person’s money at their own rate. After retirement it weights the two rates by how much each of you has.',
   'm.p8': 'The market test picks a random growth figure for each year from your growth rate and its ups and downs. It uses the same 1,000 possible futures every time, so results don’t jump about as you type. A bumpy path grows less than a steady one with the same average, which is why average years end lower than steady growth.',
   // dynamic
   'u.words.real': 'in today’s prices', 'u.words.cash': 'as actual future amounts',
@@ -434,5 +434,9 @@ MMA.i18n.en = {
   'rk.labour.d': 'You work until your last day. Whether you leave anything to your family depends on how healthy your money is today. But make a retirement plan for the day you no longer have the strength to work.',
   'adv.comboLabour': 'Ticked “I’ll retire when I die”.',
   'img.short': 'Save short image',
-  'f.growth.note': 'Not investing in anything? Use your bank account’s interest rate for both.'
+  'f.growth.note': 'Not investing in anything? Use your bank account’s interest rate for both.',
+  'x.pGrowth': 'Partner’s growth a year before retirement',
+  'x.pGrowth2': 'Partner’s growth a year after retirement',
+  'x.same': 'Same as yours',
+  'x.blend': 'Together, your money grows about {a} a year until you retire and about {b} a year after, weighted by how much each of you will have.'
 };
