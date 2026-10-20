@@ -53,7 +53,8 @@ Libraries load from a CDN, with versions pinned: Chart.js 4.4.1 (jsDelivr), html
 - **Adventurer rank:** two ladders put together.
   - Retirement ladder: Runs out, Fragile, Secure, Unshakeable.
   - Health ladder: In crisis, Struggling, Stretched, Steady, Thriving.
-  - At a glance: each card has "See all levels", listing every level from the top (Rock solid / Everything healthy) down, with where you are and how many steps are left.
+  - At a glance: each card has "See all levels", listing every level from the top down, with where you are and how many steps are left. Your future: Dynastic Generational Wealth (the God Emperor's money test), Rock solid, On track, Close but fragile, Not on track yet. Your money today: Everything healthy, Looking healthy, Mostly fine, A few things need attention.
+  - Your future rows each say which kind of market they assume: steady growth, markets going up and down, or a bad run of markets (only 1 in 10 histories do worse).
   - No rank until every question is answered. Follow-up questions (for example "Do you have enough money for it?" after big spending) stay greyed out until the question they follow is answered.
   - God Emperor (level 21): The Emperor, plus every check in the Summary Healthy (so renting, which counts as Okay, rules it out), plus a pot that, with steady growth, never gets smaller in any month of retirement even at 5 times your planned spending, up to 120 and forever after.
 
@@ -64,7 +65,7 @@ Everything stays in the user's browser (`localStorage`). Nothing is sent anywher
 ## Known issues and next steps
 
 - **Share inside claude.ai:** the claude.ai viewer blocks the phone share sheet, so Share is hidden there and only "Save as image" shows. Hosted on its own over HTTPS, Share opens the native share sheet on phones. The image is built about 1.5 seconds after the Summary settles, because browsers only allow sharing straight after a tap.
-- **Social buttons:** hosted on its own, the Summary shows X, Facebook and LINE (English and Thai) or Weibo (Chinese) buttons that open each app's post window with a link and the rank. None of them can attach an image from a web page, so the note asks people to save the image first. They're hidden inside claude.ai, where the page can't know its own shareable address. WeChat has no web share link.
+- **Social buttons:** hosted on its own, the Summary shows Facebook and X buttons. On a phone they open the share menu with the money-free image, the caption and a link; on a computer they save that image and open the post window with the link and caption, since no app lets a web page attach an image. They're hidden inside claude.ai, where the page can't know its own shareable address. Facebook and X are blocked in mainland China, so people there use the Share button (WeChat and others appear in the phone's share menu).
 - **Native-speaker review:** have the Thai and Chinese read by native speakers, especially the money terms and the new "forever" and God Emperor text.
 - **"Unshakeable":** this currently means the money lasts in 99 of 100 histories and survives a 30% fall in the first year of retirement. Tune it if it feels too easy or too hard.
 - **Retirement age cap:** the model plans at most 80 years from today to retirement, so very young ages with a very late retirement are quietly shortened.

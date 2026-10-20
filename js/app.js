@@ -980,7 +980,8 @@
   function loadScript(src){
     return new Promise((res, rej) => { const el = document.createElement('script'); el.src = src; el.onload = res; el.onerror = rej; document.head.appendChild(el); });
   }
-  async function buildImage(){
+  // safe: leave out every money amount, whatever the tick box says (used for sharing)
+  async function buildImage(safe){
     if (!window.html2canvas) await loadScript(H2C);
     const bg = css('--bg') || '#FBF6EA';
     const wrap = document.createElement('div');
@@ -995,7 +996,7 @@
       // keep it shareable: no amounts you'd need to level up
       c.querySelectorAll('.quest').forEach(qq => { if (qq.querySelector('.qn')){ const a = qq.querySelector('.qa'); if (a) a.remove(); } });
       c.querySelectorAll('.privrow').forEach(n => n.remove());
-      if (ui.hideAmts) c.querySelectorAll('.amtrow, .allranks').forEach(n => n.remove());
+      if (safe || ui.hideAmts) c.querySelectorAll('.amtrow, .allranks').forEach(n => n.remove());
       c.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
       c.removeAttribute('id'); c.style.marginTop = '20px';
       wrap.appendChild(c);
@@ -1011,13 +1012,16 @@
   // and the Web Share API is blocked by the frame. Hosted on its own (GitHub Pages, Netlify...),
   // a normal download link and navigator.share both work.
   const IN_CLAUDE = !!(window.claude && typeof window.claude.use === 'function');
-  let imgCache = null, imgTimer = null;
-  // navigator.share needs a fresh tap, so the image is built ahead of time while the Summary is open.
+  // imgCache follows the tick box (Save as image); imgSafe never shows money amounts (Share and the social buttons)
+  let imgCache = null, imgSafe = null, imgTimer = null;
+  // navigator.share needs a fresh tap, so the images are built ahead of time while the Summary is open.
   function scheduleImage(){
-    imgCache = null;
+    imgCache = imgSafe = null;
     clearTimeout(imgTimer);
     if ($('pageSum').hidden) return;
-    imgTimer = setTimeout(() => { buildImage().then(b => { imgCache = b; }).catch(() => {}); }, 1500);
+    imgTimer = setTimeout(() => {
+      buildImage(true).then(b => { imgSafe = b; if (ui.hideAmts) imgCache = b; else return buildImage(false).then(b2 => { imgCache = b2; }); }).catch(() => {});
+    }, 1500);
   }
   async function withBusy(fn){
     const msg = $('pdfMsg'), btns = [$('imgBtn'), $('shareBtn')];
@@ -1033,33 +1037,42 @@
     setTimeout(() => URL.revokeObjectURL(url), 4000);
   }
   function saveImage(){
-    return withBusy(async () => { await saveBlob(imgCache || await buildImage()); $('pdfMsg').textContent = ''; });
+    return withBusy(async () => { await saveBlob(imgCache || await buildImage(false)); $('pdfMsg').textContent = ''; });
+  }
+  const shareText = () => lastRank ? t('share.text', {n: lastRank.n, name: lastRank.name}) : t('title');
+  const pageUrl = () => /^https?:$/.test(location.protocol) ? location.href.split('#')[0] : '';
+  // Opens the phone's share menu with the money-free image, the caption and a link. Must run straight from the tap.
+  // Returns true if the menu opened.
+  function shareSafe(){
+    if (!imgSafe || !navigator.canShare) return false;
+    const file = new File([imgSafe], IMG_NAME, {type: 'image/png'}), url = pageUrl();
+    if (!navigator.canShare({files: [file]})) return false;
+    const data = {files: [file], title: t('title'), text: url ? shareText() + ' ' + url : shareText()};
+    navigator.share(data).then(() => { $('pdfMsg').textContent = ''; })
+      .catch(e => { if (!e || e.name !== 'AbortError') withBusy(async () => { await saveBlob(imgSafe); $('pdfMsg').textContent = t('share.saved'); }); });
+    return true;
   }
   function shareImage(){
-    const text = lastRank ? t('share.text', {n: lastRank.n, name: lastRank.name}) : t('title');
-    if (imgCache){
-      const file = new File([imgCache], IMG_NAME, {type: 'image/png'});
-      if (navigator.canShare && navigator.canShare({files: [file]})){
-        // called straight from the tap, before any await, so the browser allows it
-        navigator.share({files: [file], title: t('title'), text}).then(() => { $('pdfMsg').textContent = ''; })
-          .catch(e => { if (!e || e.name !== 'AbortError') saveImage().then(() => { $('pdfMsg').textContent = t('share.saved'); }); });
-        return;
-      }
-      return withBusy(async () => { await saveBlob(imgCache); $('pdfMsg').textContent = t('share.saved'); });
-    }
-    return withBusy(async () => { imgCache = await buildImage(); $('pdfMsg').textContent = t('share.ready'); });
+    if (shareSafe()) return;
+    if (imgSafe) return withBusy(async () => { await saveBlob(imgSafe); $('pdfMsg').textContent = t('share.saved'); });
+    return withBusy(async () => { imgSafe = await buildImage(true); $('pdfMsg').textContent = t('share.ready'); });
   }
-  // links that open each app's post window with the caption; none of them can take the image, see social.note
-  const SOCIAL = {en: ['x', 'fb', 'line'], th: ['line', 'fb', 'x'], zh: ['weibo']};
+  // Social buttons: on a phone they open the share menu with the money-free image and a link; elsewhere they save
+  // that image and open the app's post window with the link and caption (no app lets a web page attach an image).
+  function socialTap(e){
+    const a = e.target.closest('a[data-s]'); if (!a) return;
+    if (shareSafe()){ e.preventDefault(); return; }
+    if (imgSafe){ saveBlob(imgSafe); $('pdfMsg').textContent = t('social.saved'); }
+    else $('pdfMsg').textContent = t('social.noImg');
+  }
+  const SOCIAL = ['fb', 'x'];
   function updateSocial(){
-    const box = $('social'), page = location.href.split('#')[0];
-    box.hidden = IN_CLAUDE || !/^https?:$/.test(location.protocol);
+    const box = $('social'), page = pageUrl();
+    box.hidden = IN_CLAUDE || !page;
     if (box.hidden) return;
-    const text = lastRank ? t('share.text', {n: lastRank.n, name: lastRank.name}) : t('title'), e = encodeURIComponent;
-    const href = {x: 'https://x.com/intent/tweet?text=' + e(text) + '&url=' + e(page), fb: 'https://www.facebook.com/sharer/sharer.php?u=' + e(page),
-      line: 'https://social-plugins.line.me/lineit/share?url=' + e(page) + '&text=' + e(text), weibo: 'https://service.weibo.com/share/share.php?url=' + e(page) + '&title=' + e(text)};
-    const want = SOCIAL[LANG] || SOCIAL.en;
-    box.querySelectorAll('a[data-s]').forEach(a => { a.hidden = want.indexOf(a.dataset.s) < 0; a.href = href[a.dataset.s]; a.style.order = want.indexOf(a.dataset.s); });
+    const text = shareText(), e = encodeURIComponent;
+    const href = {x: 'https://x.com/intent/tweet?text=' + e(text) + '&url=' + e(page), fb: 'https://www.facebook.com/sharer/sharer.php?u=' + e(page)};
+    box.querySelectorAll('a[data-s]').forEach(a => { a.href = href[a.dataset.s]; a.style.order = SOCIAL.indexOf(a.dataset.s); });
   }
   function showShareBar(){
     const canShare = !!(navigator.share && navigator.canShare);
@@ -1069,14 +1082,15 @@
   }
 
   /* ---------- summary page ---------- */
-  let lastChance = null;
-  const ST_COL = {gold: 'var(--gold)', good: 'var(--keep-soft)', ok: 'var(--s1)', bad: 'var(--s2)'};
+  let lastChance = null, lastMC = null;
+  const ST_COL = {dyn: 'var(--dyn)', gold: 'var(--gold)', good: 'var(--keep-soft)', ok: 'var(--s1)', bad: 'var(--s2)'};
   // "See all levels" under each At a glance card: every level, best first, with where you are and how far from the top
-  const LEVELS = ['gold', 'good', 'ok', 'bad'];
+  // Your future has one more level at the top: the God Emperor's money test
+  const LEVELS = {fut: ['dyn', 'gold', 'good', 'ok', 'bad'], today: ['gold', 'good', 'ok', 'bad']};
   function renderLevels(id, head, desc, cur, vars){
-    const pos = LEVELS.indexOf(cur);
-    $(id).innerHTML = LEVELS.map((st, i) => '<li' + (st === cur ? ' class="here"' : '') + '><span class="lvdot" style="background:' + ST_COL[st] + '"></span><div><p class="lvname">' +
-      esc(t(head + '.' + st + '.h')) + (st === cur ? '<span class="lvhere">' + esc(t('lv.here')) + '</span>' : '') + '</p><p class="lvdesc">' + esc(t(desc + (LEVELS.length - i), vars)) + '</p></div></li>').join('');
+    const LV = LEVELS[head], pos = LV.indexOf(cur);
+    $(id).innerHTML = LV.map((st, i) => '<li' + (st === cur ? ' class="here"' : '') + '><span class="lvdot" style="background:' + ST_COL[st] + '"></span><div><p class="lvname">' +
+      esc(t(head + '.' + st + '.h')) + (st === cur ? '<span class="lvhere">' + esc(t('lv.here')) + '</span>' : '') + '</p><p class="lvdesc">' + esc(t(desc + (LV.length - i), vars)) + '</p></div></li>').join('');
     $(id + 'Foot').textContent = pos < 0 ? '' : (pos === 0 ? t('lv.top') : t(pos === 1 ? 'lv.step1' : 'lv.steps', {n: pos}));
   }
   function stPill(id, st){
@@ -1110,22 +1124,32 @@
     let fs, fh, ft;
     if (!goal){ fs = 'na'; fh = t('fut.noGoal.h'); ft = t('fut.noGoal.t'); }
     else if (!steadyOk){ fs = 'bad'; fh = t('fut.bad.h'); ft = goneBy(R, R.keep) ? t('fut.bad.t', {A: ageText(R.keep.out, p), L}) : t('fut.short.t', {L}); }
-    else if (lastChance !== null && lastChance < 0.75){ fs = 'ok'; fh = t('fut.ok.h'); ft = t('fut.ok.t', {L, c: Math.round(lastChance * 100) + '%'}); }
-    else if (lastChance !== null && lastChance >= 0.99 && ok(q, R.shock, nL)){ fs = 'gold'; fh = t('fut.gold.h'); ft = t('fut.gold.t', {L}); }
+    else if (lastChance !== null && lastChance < 0.75){
+      // steady growth says it lasts, bumpy markets say often not: say so, with the age it runs out in a bad run
+      fs = 'ok'; fh = t('fut.ok.h');
+      ft = join([t('fut.ok.t', {L, c: Math.round(lastChance * 100) + '%'}), lastMC && isFinite(lastMC.o10) ? t('fut.rainy', {a: ageAt(lastMC.o10, p)}) : '']);
+    }
+    else if (lastChance !== null && lastChance >= 0.99 && ok(q, R.shock, nL)){
+      if (R.god && R.god.ok){ fs = 'dyn'; fh = t('fut.dyn.h'); ft = t('fut.dyn.t'); }
+      else { fs = 'gold'; fh = t('fut.gold.h'); ft = t('fut.gold.t', {L}); }
+    }
     else { fs = 'good'; fh = t('fut.good.h'); ft = t('fut.good.t', {L}); }
     $('scFutureH').textContent = fh; $('scFutureT').textContent = ft;
     $('scFuture').style.setProperty('--sc', ST_COL[fs] || 'var(--line)');
+    // each row says which kind of market it assumes, so "never runs out" and a low chance don't look like they disagree
+    const rainy = !goal ? '–' : (!lastMC ? '…' : (isFinite(lastMC.o10) ? t('goneAt', {a: ageAt(lastMC.o10, p)}) : t('fl.pastL', {L})));
     const rowsF = [
-      [t('lastsTo'), t('fl.aim', {L}), goal ? lastsTxt(R.keep, q) : '–'],
-      [t('potAtRet'), goal ? t('fl.needed', {n: monNeed(p, R.need, H)}) : '', mon(p, R.keep.pot[H], H)],
+      [t('fl.steady'), t('fl.aim', {L}), goal ? lastsTxt(R.keep, q) : '–'],
       [t('fl.chance'), t('fl.toAge', {L}), goal ? (lastChance === null ? '…' : Math.round(lastChance * 100) + '%') : '–'],
-      [t('fl.need'), t('fl.now', {x: money(p.X)}), !goal ? '–' : (R.payL === null ? t('notPossible') : money(R.payL))],
+      [t('fl.rainy'), t('fl.rainy.s'), rainy],
+      [t('potAtRet'), goal ? t('fl.needed', {n: monNeed(p, R.need, H)}) : '', mon(p, R.keep.pot[H], H), 'amtrow'],
+      // what to invest is never shared; amounts can be left out of the image
+      [t('fl.need'), t('fl.now', {x: money(p.X)}), !goal ? '–' : (R.payL === null ? t('notPossible') : money(R.payL)), 'privrow'],
       [t('fl.coast'), '', !goal ? '–' : (R.coast !== null ? capFirst(ageText(R.coast, p)) : t('fl.notYet'))],
       [t('fl.s1'), '', (X > 0 && R.m1 !== null) ? capFirst(ageText(R.m1, p)) : t('never')],
-      R.forever ? null : [t('fl.left', {L}), '', !goal ? '–' : (goneBy(R, R.keep) ? t('goneAt', {a: ageAt(R.keep.out, p)}) : mon(p, R.keep.pot[end], end))]
+      R.forever ? null : [t('fl.left', {L}), '', !goal ? '–' : (goneBy(R, R.keep) ? t('goneAt', {a: ageAt(R.keep.out, p)}) : mon(p, R.keep.pot[end], end)), 'amtrow']
     ].filter(Boolean);
-    // row 1 and "left at" carry amounts: the image can leave them out; row 3 (what to invest) is never shared
-    $('smFuture').innerHTML = rowsF.map(([a, b, c], i) => '<div class="rrow' + (i === 3 ? ' privrow' : '') + (i === 1 || i === 6 ? ' amtrow' : '') + '"><span>' + esc(a) + (b ? '<span class="kvsub">' + esc(b) + '</span>' : '') + '</span><span>' + esc(c) + '</span></div>').join('');
+    $('smFuture').innerHTML = rowsF.map(([a, b, c, cls]) => '<div class="rrow' + (cls ? ' ' + cls : '') + '"><span>' + esc(a) + (b ? '<span class="kvsub">' + esc(b) + '</span>' : '') + '</span><span>' + esc(c) + '</span></div>').join('');
 
     // ---- today ----
     const left = (I !== null && S !== null) ? I - S - DP - X : null;
@@ -1468,6 +1492,7 @@
       const mcRes = monteCarlo(R.q, R.nL, 1000, true);
       renderMC(p, R, mcRes);
       lastChance = hasRetirementGoal(p) ? mcRes.chance : null;
+      lastMC = hasRetirementGoal(p) ? mcRes : null;
       renderSummary(p, R);
       R.ages.forEach((a, i) => { if (a) $('ag' + i + 'e').textContent = hasRetirementGoal(p) ? Math.round(monteCarlo(a.q, a.nL, 300, false).chance * 100) + '%' : '–'; });
       renderPlans(true);
@@ -1534,6 +1559,7 @@
     renderRankInfo();
   });
   $('shareBtn').addEventListener('click', shareImage);
+  $('social').addEventListener('click', socialTap);
   showShareBar();
   if (window.claude && typeof window.claude.use === 'function'){
     window.claude.use('downloads').then(d => { DL = d; showShareBar(); }).catch(() => {});
