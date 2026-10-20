@@ -11,7 +11,7 @@ A static, no-build web app: "Will My Money Be Enough?", a gamified retirement an
 ## Where things are
 - `index.html`: markup only. Static text uses `data-t="key"` (textContent), `data-l="key"` + `data-h="hintKey"` (labels with hints) and `data-ph="key"` (placeholders). `applyStatic()` in `app.js` fills them.
 - `js/i18n/{en,th,zh}.js`: all text, as `MMA.i18n.<lang> = { key: 'text {placeholder}' }`. They load before `app.js`.
-- `js/icons.js`: `MMA.icons`, 64×64 SVG strings for the 21 adventurer classes plus `unknown`.
+- `js/icons.js`: `MMA.icons`, 64×64 SVG strings for the 22 adventurer classes (Level 0 The Labourer to 21 God Emperor) plus `unknown`.
 - `js/app.js`: one IIFE. The main parts, in order:
   - `parse()`: raw inputs to numbers.
   - `makeModel()` and `run()`: the month-by-month model in today's prices.
@@ -36,7 +36,7 @@ A static, no-build web app: "Will My Money Be Enough?", a gamified retirement an
 7. **Defaults lean cautious on purpose:** inflation 3.5% and growth after retirement 5%. Optional extras default to blank (none).
 8. **Keep the "not financial advice" note** (`heads` key) under the title and in the shared image.
 9. **Forever mode text:** `t()` swaps any key for its `key.f` version while `inForever` is on. Any text with `{L}` (the live-to age) must have a `.f` version; `npm run check` enforces it.
-10. **Ranks:** no adventurer until every Summary question is answered (`missing` in `renderSummary()`). Follow-up questions are greyed out until the question they follow is answered. Level 21 (God Emperor) is never reached through the ladders alone. Ticking “I’ll retire when I die” (`noRetire`) models retirement in the year before the live-to age, but always puts the retirement ladder on step 1 with a kind note, so the box can never lift a rank.
+10. **Ranks:** no adventurer until every Summary question is answered (`missing` in `renderSummary()`). Follow-up questions are greyed out until the question they follow is answered. Level 21 (God Emperor) is never reached through the ladders alone. Ticking “I’ll retire when I die” (`noRetire`) models retirement in the year before the live-to age and always gives Level 0, The Labourer (`LABOUR`), with a kind note.
 
 ## Gotchas
 - **Ad blockers:** never start a class or id with `adv`, `ad-`, `ads`, `banner` or `sponsor`. Ad-block lists (EasyList, built into Edge and others) hide them; `.advtop` once made the rank vanish on phones. The rank block uses `rpg…` names.

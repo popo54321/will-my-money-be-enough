@@ -4,7 +4,7 @@ A friendly, gamified money planner. You enter your numbers, and it shows:
 
 - **Whether your retirement money will last**: when your monthly investing stops mattering, what happens if you stop early, how long the pot lasts in retirement (to any age up to 120, or "Keep going forever"), and how it holds up when markets go up and down.
 - **How healthy your money is today**: money left each month, debt, emergency savings, a life checklist (home, car, children, big plans) and insurance.
-- **Which adventurer you are**: 20 fantasy ranks, from Lost Traveller to The Emperor, made by combining the two answers above, with "next quests" to level up. Above them sits a secret 21st rank, the God Emperor. You meet your adventurer once every question is answered, and you can tap any rank to read about it.
+- **Which adventurer you are**: 20 fantasy ranks, from Lost Traveller to The Emperor, made by combining the two answers above, with "next quests" to level up. Above them sits a secret 21st rank, the God Emperor. Below them is Level 0, The Labourer, for anyone who ticks “I’ll retire when I die”. You meet your adventurer once every question is answered, and you can tap any rank to read about it.
 
 It runs in English, Thai and Simplified Chinese (for mainland China). The Thai and Chinese are localised, not translated word for word.
 

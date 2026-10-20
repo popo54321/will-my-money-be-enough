@@ -18,7 +18,7 @@ MMA.i18n.en = {
   'share.saved': 'Image saved. Post it in your favourite app to share it.', 'share.text': 'I’m a Level {n} {name} on my money adventure!',
   'img.private': 'Shared images never show money amounts. Saved images leave out the amounts you’d need to level up, so they’re safe to share too.',
   'adv.h': 'Your adventurer', 'adv.level': 'Level {n} of {total}', 'adv.ret': 'Will it be enough?', 'adv.health': 'Money life today', 'adv.next': 'Next quests',
-  'adv.all': 'See all 21 adventurers', 'adv.you': 'You', 'adv.lv': 'Lv {n}', 'adv.unknown': 'Your adventurer awaits',
+  'adv.all': 'See all 22 adventurers', 'adv.you': 'You', 'adv.lv': 'Lv {n}', 'adv.unknown': 'Your adventurer awaits',
   'adv.needRet': 'Add your spending after retirement in the calculator.', 'adv.needToday': 'Add your take-home pay and spending now in the calculator.', 'adv.wait': 'Reading the stars…',
   'lr.1': 'Runs out', 'lr.2': 'Fragile', 'lr.3': 'Secure', 'lr.4': 'Unshakeable',
   'lh.1': 'In crisis', 'lh.2': 'Struggling', 'lh.3': 'Stretched', 'lh.4': 'Steady', 'lh.5': 'Thriving',
@@ -374,7 +374,7 @@ MMA.i18n.en = {
   'img.hide': 'Hide all money amounts in the image',
   'social.note': 'On a phone, these open your share menu with your image (no money amounts) and a link to this page. On a computer, the image is saved first so you can add it to your post.',
   'm.p9': 'With “Keep going forever” on the live-to slider, the page follows your money for 100 years after you retire. By then nothing changes any more, so it can work out exactly when the money would run out, or show that it never will: that happens when the pot earns at least what you take out each month. In the market test, a possible future counts as lasting forever if the money is still there after those 100 years and by then earns at least what you take out.',
-  'm.p10': 'You meet your adventurer once every question is answered. The God Emperor, level 21, needs The Emperor first, every check in the Summary Healthy, and a pot that, with steady growth, never gets smaller in any month of retirement even if you spent 5 times as much, up to 120 and forever after.',
+  'm.p10': 'You meet your adventurer once every question is answered. The God Emperor, level 21, needs The Emperor first, every check in the Summary Healthy, and a pot that, with steady growth, never gets smaller in any month of retirement even if you spent 5 times as much, up to 120 and forever after. Ticking “I’ll retire when I die” makes you Level 0, The Labourer, whatever else you answer.',
   'adv.combo': 'Retirement: {r}. Money life today: {h}.',
   'adv.comboGod': 'The Emperor, plus every check Healthy and a pot that never shrinks, even at 5 times the spending.',
   'adv.tap': 'Tap any adventurer to read about them.',
@@ -429,5 +429,8 @@ MMA.i18n.en = {
   'fut.never.t': 'You’ve chosen never to retire, so this plan never has to live off your savings. It isn’t a retirement plan yet, so it sits on the lowest step.',
   'never.note': 'You’ve chosen to work for life, and that’s okay. But illness or age can force anyone to stop, so a plan you could live off is still worth having. Untick the box and try a retirement age to see how close you are.',
   'lr.never': 'Working for life',
-  'quest.retNever': 'Untick “I’ll retire when I die” and pick a retirement age to start climbing this ladder.'
+  'quest.retNever': 'Untick “I’ll retire when I die” and pick a retirement age to start climbing this ladder.',
+  'rk.labour': 'The Labourer',
+  'rk.labour.d': 'You work until your last day. Whether you leave anything to your family depends on how healthy your money is today. But make a retirement plan for the day you no longer have the strength to work.',
+  'adv.comboLabour': 'Ticked “I’ll retire when I die”.'
 };

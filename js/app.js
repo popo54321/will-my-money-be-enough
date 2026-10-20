@@ -888,17 +888,18 @@
 
   /* ---------- adventurer symbols (see js/icons.js) ---------- */
   const ICONS = window.MMA.icons;
-  const RANKS = [null,
+  // level 0, The Labourer, is only for people who never retire (ticked “I’ll retire when I die”)
+  const RANKS = [{r: 0, h: 0, k: 'labour'},
     {r: 1, h: 1, k: 'wanderer'}, {r: 1, h: 2, k: 'smith'}, {r: 2, h: 1, k: 'pirate'}, {r: 1, h: 3, k: 'rat'}, {r: 2, h: 2, k: 'hedge'},
     {r: 3, h: 1, k: 'prince'}, {r: 1, h: 4, k: 'bard'}, {r: 2, h: 3, k: 'squire'}, {r: 3, h: 2, k: 'pilgrim'}, {r: 4, h: 1, k: 'dragon'},
     {r: 1, h: 5, k: 'lord'}, {r: 2, h: 4, k: 'ranger'}, {r: 3, h: 3, k: 'druid'}, {r: 4, h: 2, k: 'monk'}, {r: 2, h: 5, k: 'knight'},
     {r: 3, h: 4, k: 'priest'}, {r: 4, h: 3, k: 'steward'}, {r: 3, h: 5, k: 'king'}, {r: 4, h: 4, k: 'archmage'}, {r: 4, h: 5, k: 'emperor'},
     // level 21 sits above The Emperor and is never reached through the two ladders alone, see renderAdventurer()
     {r: 4, h: 5, k: 'god'}];
-  const GOD = RANKS.length - 1, TOP = RANKS.length - 1;
+  const GOD = RANKS.length - 1, TOP = RANKS.length - 1, LABOUR = 0;
   const rankOf = (r, h) => RANKS.findIndex(x => x && x.r === r && x.h === h);
   const TIER_BG = ['#EFE6D8', '#E3EEDC', '#D6EEDF', '#F6E6B4'], GOD_BG = '#EAE2FA';
-  const tierBg = n => n === GOD ? GOD_BG : TIER_BG[Math.min(3, Math.floor((n - 1) / 5))];
+  const tierBg = n => n === GOD ? GOD_BG : n === LABOUR ? '#EDE3D3' : TIER_BG[Math.min(3, Math.floor((n - 1) / 5))];
   let ITEMS = [], lastQuest;
   function steps(n, total){ let h = ''; for (let i = 1; i <= total; i++) h += '<span' + (i <= n ? ' class="on"' : '') + '></span>'; return h; }
   // the money-today ladder, 1 to 5, from what's left each month and the count of Healthy / Okay / Needs attention
@@ -906,15 +907,16 @@
   function renderAdventurer(p, R, c){
     const q = R.q, nL = R.nL, L = R.L;
     let rl = null, hl = null;
-    // never retiring isn't a retirement plan yet, so it sits on the lowest step
-    if (p.noRetire) rl = 1;
+    // never retiring isn't a retirement plan yet: no step on that ladder, and Level 0
+    if (p.noRetire) rl = 0;
     else if (c.goal){
       if (!c.steadyOk) rl = 1;
       else if (lastChance !== null) rl = lastChance < 0.75 ? 2 : ((lastChance >= 0.99 && ok(q, R.shock, nL)) ? 4 : 3);
     }
     if (c.I !== null && c.S !== null) hl = healthStep(c.left, c.cnt);
     // no adventurer until every question is answered
-    let n = (rl && hl && !c.missing.length) ? rankOf(rl, hl) : 0;
+    let n = null;
+    if (hl && !c.missing.length) n = p.noRetire ? LABOUR : (rl ? rankOf(rl, hl) : null);
     const emperor = rankOf(4, 5);
     if (n === emperor && c.perfect && R.god && R.god.ok) n = GOD;
     $('rpgRetName').textContent = p.noRetire ? t('lr.never') : (rl ? t('lr.' + rl) : '–');
@@ -922,7 +924,7 @@
     $('rpgHealthName').textContent = hl ? t('lh.' + hl) : '–';
     $('rpgHealthSteps').innerHTML = steps(hl || 0, 5);
     const icon = $('rpgIcon');
-    if (!n){
+    if (n === null){
       icon.innerHTML = ICONS.unknown; icon.style.setProperty('--tierbg', '#F3EEE2');
       $('rpgLvl').textContent = '';
       $('rpgName').textContent = t('adv.unknown');
@@ -947,7 +949,8 @@
       $('rpgDesc').textContent = t('rk.' + rk.k + '.d');
       const quests = [];
       const qOf = it => { const el = $('rw' + it.key); return el ? el.querySelector('.q').textContent : ''; };
-      if (n === GOD) quests.push({label: t('quest.final'), top: true, god: true, text: t('quest.godTop')});
+      if (n === LABOUR) quests.push({label: t('quest.ret'), to: RANKS[rankOf(1, hl)], text: t('quest.retNever')});
+      else if (n === GOD) quests.push({label: t('quest.final'), top: true, god: true, text: t('quest.godTop')});
       else if (n === emperor){
         // the final quest: everything healthy, and a pot that never shrinks even at 5 times the spending
         const parts = [];
@@ -967,8 +970,7 @@
         else {
           const to = RANKS[rankOf(rl + 1, hl)];
           let text;
-          if (p.noRetire) text = t('quest.retNever');
-          else if (rl === 1) text = R.payL === null ? t('quest.ret1.imp', {L}) : t('quest.ret1', {x: money(R.payL), now: money(p.X), L});
+          if (rl === 1) text = R.payL === null ? t('quest.ret1.imp', {L}) : t('quest.ret1', {x: money(R.payL), now: money(p.X), L});
           else if (lastQuest === undefined) text = t('busy');
           else if (!lastQuest || lastQuest.res.impossible) text = t('quest.retImp');
           else if (lastQuest.res.ok || lastQuest.res.X <= p.X) text = t('quest.retClose');
@@ -990,8 +992,8 @@
         (qq.to ? ICONS[qq.to.k] : (qq.god ? ICONS.god : ICONS.emperor)) + '</div><div><p class="qt">' + esc(qq.label) + '</p>' +
         (qq.to ? '<p class="qn">' + esc(t('quest.to', {name: t('rk.' + qq.to.k)})) + '</p>' : '') + '<p class="qa">' + esc(qq.text) + '</p></div></div>').join('');
     }
-    $('rankGrid').innerHTML = RANKS.slice(1).map((rk, i) => '<button type="button" class="rk' + (i + 1 === n ? ' me' : '') + (i + 1 === GOD ? ' god' : '') + '" data-n="' + (i + 1) + '" aria-pressed="' + (i + 1 === rankSel) + '"><span class="ri" style="background:' + tierBg(i + 1) + '">' + ICONS[rk.k] +
-      '</span><span class="rl">' + esc(t('adv.lv', {n: i + 1})) + '</span><span class="rn">' + esc(t('rk.' + rk.k)) + '</span>' + (i + 1 === n ? '<span class="you">' + esc(t('adv.you')) + '</span>' : '') + '</button>').join('');
+    $('rankGrid').innerHTML = RANKS.map((rk, i) => '<button type="button" class="rk' + (i === n ? ' me' : '') + (i === GOD ? ' god' : '') + '" data-n="' + i + '" aria-pressed="' + (i === rankSel) + '"><span class="ri" style="background:' + tierBg(i) + '">' + ICONS[rk.k] +
+      '</span><span class="rl">' + esc(t('adv.lv', {n: i})) + '</span><span class="rn">' + esc(t('rk.' + rk.k)) + '</span>' + (i === n ? '<span class="you">' + esc(t('adv.you')) + '</span>' : '') + '</button>').join('');
     renderRankInfo();
     updateSocial();
     return {hl, n};
@@ -1000,12 +1002,12 @@
   let rankSel = null;
   function renderRankInfo(){
     const box = $('rankInfo');
-    if (!rankSel){ box.hidden = true; return; }
+    if (rankSel === null){ box.hidden = true; return; }
     const rk = RANKS[rankSel];
     box.hidden = false;
     box.innerHTML = '<div class="ri" style="background:' + tierBg(rankSel) + '">' + ICONS[rk.k] + '</div><div><p class="rl">' + esc(t('adv.level', {n: rankSel, total: TOP})) + '</p><p class="rpgname">' + esc(t('rk.' + rk.k)) +
       '</p><p class="rpgdesc">' + esc(t('rk.' + rk.k + '.d')) + '</p><p class="note" style="margin:6px 0 0">' +
-      esc(rankSel === GOD ? t('adv.comboGod') : t('adv.combo', {r: t('lr.' + rk.r), h: t('lh.' + rk.h)})) + '</p></div>';
+      esc(rankSel === GOD ? t('adv.comboGod') : rankSel === LABOUR ? t('adv.comboLabour') : t('adv.combo', {r: t('lr.' + rk.r), h: t('lh.' + rk.h)})) + '</p></div>';
   }
 
 
