@@ -59,7 +59,8 @@
     buildRows(1, 1);
     $('partner').innerHTML = fld('pAge', 'x.pAge', '', {int: true}) + fld('pRetire', 'x.pRetire', '', {int: true}) +
       fld('pStart', 'x.pStart', '', {money: true, phRaw: '0'}) + fld('pMonthly', 'x.pMonthly', '', {money: true, phRaw: '0'}) +
-      fld('pGrowth', 'x.pGrowth', 'f.beforeInfl', {suf: '%', ph: 'x.same'}) + fld('pGrowth2', 'x.pGrowth2', 'f.beforeInfl', {suf: '%', ph: 'x.same'}) +
+      '<label class="tog" style="grid-column:1/-1;margin:0"><input type="checkbox" id="pSame" data-save> <span data-t="x.same"></span></label>' +
+      fld('pGrowth', 'x.pGrowth', 'f.beforeInfl', {suf: '%', cls: 'pgrow'}) + fld('pGrowth2', 'x.pGrowth2', 'f.beforeInfl', {suf: '%', cls: 'pgrow'}) +
       '<p class="note" id="blendNote" style="grid-column:1/-1;margin:-6px 0 0"></p>';
   }
   /* ---------- other income and one-off rows: add or remove as many as needed ---------- */
@@ -112,7 +113,7 @@
     writeRaw(raw); render();
   }
   const CORE = {start: '10,000', monthly: '500', raise: '', infl: '3.5', growth: '7', growth2: '5', age: '30', retire: '60', spend: '1,500',
-    s1: '25', s2: '5', yield: '2', vol1: '15', vol2: '10', fall: '30', pay: '', two: false};
+    s1: '25', s2: '5', yield: '2', vol1: '15', vol2: '10', fall: '30', pay: '', two: false, pSame: true};
   function defaults(){
     const d = Object.assign({}, CORE);
     document.querySelectorAll('[data-save]').forEach(el => {
@@ -135,6 +136,8 @@
       if (el.type === 'checkbox') el.checked = !!v; else el.value = (v === undefined || v === null) ? '' : v;
       if (el.tagName === 'SELECT' && el.selectedIndex < 0) el.selectedIndex = 0;
     });
+    // saves from before the tick box: partner rates already typed in mean they weren't the same
+    if (raw && raw.pSame === undefined && (raw.pGrowth || raw.pGrowth2)) $('pSame').checked = false;
     $('nInc').value = nInc; $('nOne').value = nOne;
   }
 
@@ -207,7 +210,8 @@
       fees: clamp(g('fees', 0), 0, 10) / 100, tax: clamp(g('tax', 0), 0, 90) / 100, legacy: Math.max(0, g('legacy', 0)),
       steps, incomes, oneoffs,
       two, pAge, pRetire, badPartner, pStart: two ? Math.max(0, g('pStart', 0)) : 0, pX: two ? Math.max(0, g('pMonthly', 0)) : 0,
-      pGrowth: two && has('pGrowth') ? clamp(g('pGrowth', 0), -20, 40) / 100 : null, pGrowthR: two && has('pGrowth2') ? clamp(g('pGrowth2', 0), -20, 40) / 100 : null,
+      // the partner's own growth rates count only once “Same growth as yours” is unticked
+      pGrowth: two && !raw.pSame && has('pGrowth') ? clamp(g('pGrowth', 0), -20, 40) / 100 : null, pGrowthR: two && !raw.pSame && has('pGrowth2') ? clamp(g('pGrowth2', 0), -20, 40) / 100 : null,
       yld: clamp(g('yield', 0), 0, 30) / 100, vol1: clamp(g('vol1', 15), 0, 60) / 100, vol2: clamp(g('vol2', 10), 0, 60) / 100,
       fall: clamp(g('fall', 30), 0, 95) / 100, pay: Math.max(0, g('pay', 0))
     });
@@ -1558,6 +1562,7 @@
     $('retire').disabled = p.noRetire;
     unitCash = ui.unit === 'cash';
     $('partner').hidden = !p.two;
+    document.querySelectorAll('.pgrow').forEach(el => el.hidden = !!raw.pSame);
     $('blendNote').textContent = p.blend && (Math.abs(p.growth - p.ownGrowth) > 5e-4 || Math.abs(p.growthR - p.ownGrowthR) > 5e-4) ? t('x.blend', {a: pct(p.growth), b: pct(p.growthR)}) : '';
     document.querySelectorAll('.whose').forEach(el => el.hidden = !p.two);
     const n = extrasCount(p);
