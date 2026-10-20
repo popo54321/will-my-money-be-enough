@@ -1271,7 +1271,7 @@
     }
 
     // ---- life checklist ----
-    const SEL = {House: 'sHouse', Car: 'sCar', Deps: 'sDeps', Kids: 'sKids', School: 'sSchool', KidCost: 'sKidCost', Big: 'sBig', BigPay: 'sBigPay', Will: 'sWill', Health: 'sHealth', Life: 'sLife', HomeIns: 'sHomeIns', CarIns: 'sCarIns', Income: 'sIncomeIns', Critical: 'sCritical', Accident: 'sAccident'};
+    const SEL = {Job: 'sJob', House: 'sHouse', Car: 'sCar', Deps: 'sDeps', Kids: 'sKids', School: 'sSchool', KidCost: 'sKidCost', Big: 'sBig', BigPay: 'sBigPay', Will: 'sWill', Health: 'sHealth', Life: 'sLife', HomeIns: 'sHomeIns', CarIns: 'sCarIns', Income: 'sIncomeIns', Critical: 'sCritical', Accident: 'sAccident'};
     const ck = (key, val, map, txt) => {
       const el = $(SEL[key]), opt = el && el.selectedIndex > 0 ? el.options[el.selectedIndex] : null;
       $('av' + key).textContent = opt ? opt.textContent : '';
@@ -1279,6 +1279,7 @@
       today.push(setCheck(key, map[val], t(txt ? txt(val) : 'ck.' + key.charAt(0).toLowerCase() + key.slice(1) + '.' + val + '.t')));
     };
     const car = raw.sCar || '';
+    ck('Job', raw.sJob || '', {steady: 'good', unsteady: 'ok', no: 'bad'});
     ck('House', house, {own: 'good', mortgage: 'ok', rent: 'ok', family: 'ok'});
     ck('Car', car, {own: 'good', loan: 'ok', family: 'ok', plan: 'ok', none: 'good'});
     ck('Deps', raw.sDeps || '', {yes: 'na', no: 'good'});

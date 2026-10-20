@@ -438,5 +438,12 @@ MMA.i18n.en = {
   'x.pGrowth': 'Partner’s growth a year before retirement',
   'x.pGrowth2': 'Partner’s growth a year after retirement',
   'x.same': 'Same growth as yours',
-  'x.blend': 'Together, your money grows about {a} a year until you retire and about {b} a year after, weighted by how much each of you will have.'
+  'x.blend': 'Together, your money grows about {a} a year until you retire and about {b} a year after, weighted by how much each of you will have.',
+  'ck.job': 'Do you have a steady income from work?',
+  'ck.job.steady': 'Yes, it’s steady',
+  'ck.job.unsteady': 'Yes, but it’s not steady',
+  'ck.job.no': 'No, not right now',
+  'ck.job.steady.t': 'A steady income is what everything else is built on.',
+  'ck.job.unsteady.t': 'Income that goes up and down needs a bigger cash cushion. Aim for at least six months of spending in cash, and plan around your leaner months.',
+  'ck.job.no.t': 'Without income from work, your savings are carrying you. Keep spending tight and protect your cash until money is coming in again.'
 };
