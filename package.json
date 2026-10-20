@@ -1,0 +1,14 @@
+{
+  "name": "will-my-money-be-enough",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A friendly, gamified retirement and money-health calculator in English, Thai and Simplified Chinese.",
+  "scripts": {
+    "start": "npx --yes serve@14.2.4 .",
+    "check": "node tests/i18n-check.mjs",
+    "test": "node tests/i18n-check.mjs && node tests/smoke.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.47.2"
+  }
+}
