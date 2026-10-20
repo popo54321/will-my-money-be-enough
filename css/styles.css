@@ -161,6 +161,7 @@ input[type=range]:focus-visible{outline:2px solid var(--keep);outline-offset:3px
 .planbtns{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 14px;}
 .btn2{font:inherit;font-size:.88rem;font-weight:600;padding:8px 14px;border-radius:18px;border:1px solid var(--keep);background:transparent;color:var(--keep-ink);cursor:pointer;}
 .btn2:disabled{opacity:.4;cursor:default;}
+.box input:disabled{opacity:.45;}
 .loadrow > span + span{text-align:right;}
 .langbar{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin:0 0 18px;font-size:.82rem;color:var(--muted);}
 html[lang="th"] body{line-height:1.65;}

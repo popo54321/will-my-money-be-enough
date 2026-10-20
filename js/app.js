@@ -160,7 +160,8 @@
   function saveAll(){ try { localStorage.setItem(STORE, JSON.stringify({raw: readRaw(), ui})); } catch(e){} }
 
   /* ---------- parsing ---------- */
-  function parse(raw){
+  // live: the live-to age, used for the retirement age when someone never retires (ticked “I’ll retire when I die”)
+  function parse(raw, live){
     const g = (k, fb) => {
       const s = String(raw[k] === undefined || raw[k] === null ? '' : raw[k]).replace(/[^0-9.\-]/g, '');
       if (s === '' || s === '-' || s === '.') return fb;
@@ -168,7 +169,9 @@
     };
     const has = k => g(k, null) !== null;
     const age = Math.round(clamp(g('age', 30), 0, 100));
-    const retireIn = Math.round(clamp(g('retire', 60), 1, 105));
+    // never retiring: work and invest to the year before the live-to age (105 at most, for forever)
+    const noRetire = !!raw.noRetire;
+    const retireIn = noRetire ? Math.round(clamp(Math.min(live || 90, 106) - 1, age + 1, 105)) : Math.round(clamp(g('retire', 60), 1, 105));
     const badRetire = retireIn <= age;
     const years = badRetire ? 1 : Math.min(retireIn - age, 80);
     const retire = age + years;
@@ -197,7 +200,7 @@
     return {
       start: Math.max(0, g('start', 0)), X: Math.max(0, g('monthly', 0)), raise: clamp(g('raise', 0), -10, 20) / 100,
       infl: clamp(g('infl', 0), 0, 25) / 100, growth: clamp(g('growth', 0), -20, 40) / 100, growthR: clamp(g('growth2', 0), -20, 40) / 100,
-      age, years, retire, badRetire, spend: Math.max(0, g('spend', 0)),
+      age, years, retire, badRetire, noRetire, spend: Math.max(0, g('spend', 0)),
       s1: clamp(g('s1', 25), 0.1, 99) / 100, s2: clamp(g('s2', 5), 0.1, 99) / 100,
       fees: clamp(g('fees', 0), 0, 10) / 100, tax: clamp(g('tax', 0), 0, 90) / 100, legacy: Math.max(0, g('legacy', 0)),
       steps, incomes, oneoffs,
@@ -903,7 +906,9 @@
   function renderAdventurer(p, R, c){
     const q = R.q, nL = R.nL, L = R.L;
     let rl = null, hl = null;
-    if (c.goal){
+    // never retiring isn't a retirement plan yet, so it sits on the lowest step
+    if (p.noRetire) rl = 1;
+    else if (c.goal){
       if (!c.steadyOk) rl = 1;
       else if (lastChance !== null) rl = lastChance < 0.75 ? 2 : ((lastChance >= 0.99 && ok(q, R.shock, nL)) ? 4 : 3);
     }
@@ -912,7 +917,7 @@
     let n = (rl && hl && !c.missing.length) ? rankOf(rl, hl) : 0;
     const emperor = rankOf(4, 5);
     if (n === emperor && c.perfect && R.god && R.god.ok) n = GOD;
-    $('rpgRetName').textContent = rl ? t('lr.' + rl) : '–';
+    $('rpgRetName').textContent = p.noRetire ? t('lr.never') : (rl ? t('lr.' + rl) : '–');
     $('rpgRetSteps').innerHTML = steps(rl || 0, 4);
     $('rpgHealthName').textContent = hl ? t('lh.' + hl) : '–';
     $('rpgHealthSteps').innerHTML = steps(hl || 0, 5);
@@ -923,7 +928,7 @@
       $('rpgName').textContent = t('adv.unknown');
       lastRank = null;
       const need = [];
-      if (!c.goal) need.push(t('adv.needRet'));
+      if (!c.goal && !p.noRetire) need.push(t('adv.needRet'));
       if (hl === null) need.push(t('adv.needToday'));
       if (!need.length && c.missing.length){
         const row = $('rw' + c.missing[0]);
@@ -962,7 +967,8 @@
         else {
           const to = RANKS[rankOf(rl + 1, hl)];
           let text;
-          if (rl === 1) text = R.payL === null ? t('quest.ret1.imp', {L}) : t('quest.ret1', {x: money(R.payL), now: money(p.X), L});
+          if (p.noRetire) text = t('quest.retNever');
+          else if (rl === 1) text = R.payL === null ? t('quest.ret1.imp', {L}) : t('quest.ret1', {x: money(R.payL), now: money(p.X), L});
           else if (lastQuest === undefined) text = t('busy');
           else if (!lastQuest || lastQuest.res.impossible) text = t('quest.retImp');
           else if (lastQuest.res.ok || lastQuest.res.X <= p.X) text = t('quest.retClose');
@@ -1153,7 +1159,8 @@
     // ---- future ----
     const goal = hasRetirementGoal(p), steadyOk = ok(q, R.keep, nL);
     let fs, fh, ft;
-    if (!goal){ fs = 'na'; fh = t('fut.noGoal.h'); ft = t('fut.noGoal.t'); }
+    if (p.noRetire){ fs = 'bad'; fh = t('fut.never.h'); ft = t('fut.never.t'); }
+    else if (!goal){ fs = 'na'; fh = t('fut.noGoal.h'); ft = t('fut.noGoal.t'); }
     else if (!steadyOk){ fs = 'bad'; fh = t('fut.bad.h'); ft = goneBy(R, R.keep) ? t('fut.bad.t', {A: ageText(R.keep.out, p), L}) : t('fut.short.t', {L}); }
     else if (lastChance !== null && lastChance < 0.75){
       // steady growth says it lasts, bumpy markets say often not: say so, with the age it runs out in a bad run
@@ -1206,13 +1213,15 @@
     }
 
     // ---- today vs tomorrow ----
-    if (!goal) miss('Fit', t('fut.noGoal.t'));
+    if (p.noRetire) setCheck('Fit', 'na', '', false);
+    else if (!goal) miss('Fit', t('fut.noGoal.t'));
     else if (R.payL === null) today.push(setCheck('Fit', 'bad', t('l.fit.imp')));
     else if (steadyOk) today.push(setCheck('Fit', 'good', left !== null && left > 0 ? t('l.fit.onSpare', {l: money(left)}) : t('l.fit.on')));
     else if (left === null) miss('Fit', t('l.fit.na'));
     else { const e = R.payL - p.X; today.push(setCheck('Fit', left >= e ? 'good' : 'bad', t(left >= e ? 'l.fit.yes' : 'l.fit.no', {e: money(e), l: money(Math.max(0, left))}))); }
     const house = raw.sHouse || '';
-    if (!(p.spend > 0) || S === null || S <= 0) miss('Sp', t('l.sp.na'));
+    if (p.noRetire) setCheck('Sp', 'na', '', false);
+    else if (!(p.spend > 0) || S === null || S <= 0) miss('Sp', t('l.sp.na'));
     else {
       const ratio = p.spend / S, v = {a: money(p.spend), b: money(S)};
       const st = ratio < 0.7 ? 'ok' : 'good';
@@ -1316,7 +1325,7 @@
       const v = {lvl: t('fut.' + nextHelp.target + '.h'), a: nextHelp.age, y: money(nextHelp.spend || 0)};
       next = t(nextHelp.age && nextHelp.spend ? 'nx.both' : (nextHelp.age ? 'nx.age' : 'nx.spend'), v);
     }
-    const cheer = goal && p.years > 0 && (fs === 'bad' || fs === 'ok') ? t('cheer.t', {d: dur(p.years * 12)}) : '';
+    const cheer = p.noRetire ? t('never.note') : goal && p.years > 0 && (fs === 'bad' || fs === 'ok') ? t('cheer.t', {d: dur(p.years * 12)}) : '';
     $('nextNote').textContent = next; $('rpgNextNote').textContent = next;
     $('cheerNote').textContent = cheer; $('rpgCheerNote').textContent = cheer;
   }
@@ -1340,8 +1349,8 @@
     render();
   }
   function planSummary(raw, withMC){
-    const p = parse(raw);
-    const L = clamp(Math.round(raw.__live || 90), p.retire + 1, FOREVER);
+    const p = parse(raw, raw.__live);
+    const L = clamp(Math.round(raw.__live || 90), p.noRetire ? p.age + 2 : p.retire + 1, FOREVER);
     const R = compute(p, p.years, L), q = R.q, H = q.H, goal = hasRetirementGoal(p);
     // the plan's own live-to age picks the wording, then the page's goes back
     const was = inForever; inForever = R.forever;
@@ -1507,7 +1516,8 @@
   /* ---------- main render ---------- */
   let asyncTimer = null;
   function render(){
-    const raw = readRaw(), p = parse(raw);
+    const raw = readRaw(), p = parse(raw, ui.live);
+    $('retire').disabled = p.noRetire;
     unitCash = ui.unit === 'cash';
     $('partner').hidden = !p.two;
     document.querySelectorAll('.whose').forEach(el => el.hidden = !p.two);
@@ -1522,7 +1532,8 @@
     $('msg').textContent = join(msgs);
 
     const maxL = FOREVER;
-    ui.live = clamp(Math.round(ui.live), p.retire + 1, maxL);
+    const minL = p.noRetire ? p.age + 2 : p.retire + 1;
+    ui.live = clamp(Math.round(ui.live), minL, maxL);
     const L = ui.live;
     inForever = L > MAX_AGE;
     const R = compute(p, p.years, L);
@@ -1534,7 +1545,7 @@
     state = {p, R};
 
     const sl = $('stop'); sl.min = p.age; sl.max = p.retire; sl.value = p.age + N;
-    const lv = $('live'); lv.min = p.retire + 1; lv.max = maxL; lv.value = L;
+    const lv = $('live'); lv.min = minL; lv.max = maxL; lv.value = L;
 
     renderScen(p, R); renderStop(p, R); renderRetirement(p, R); renderBadStart(p, R);
     renderAges(p, R); renderFix(p, R); renderDecision(p, R); renderMethod(p, R);
@@ -1553,7 +1564,7 @@
       lastChance = hasRetirementGoal(p) ? mcRes.chance : null;
       lastMC = hasRetirementGoal(p) ? mcRes : null;
       let fsNow = null;
-      if (hasRetirementGoal(p)){
+      if (hasRetirementGoal(p) && !p.noRetire){
         fsNow = !ok(R.q, R.keep, R.nL) ? 'bad' : (mcRes.chance < 0.75 ? 'ok' : (!(mcRes.chance >= 0.99 && ok(R.q, R.shock, R.nL)) ? 'good' : (R.god && R.god.ok ? 'dyn' : 'gold')));
         nextHelp = nextStep(p, R.L, fsNow);
       }
