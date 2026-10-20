@@ -44,5 +44,5 @@ A static, no-build web app: "Will My Money Be Enough?", a gamified retirement an
 - **Amounts shown:** actual future amounts are the default (`ui.unit = 'cash'`); a saved "today's prices" choice is kept only when `ui.unitSet` says the person picked it.
 - **Saved data:** `localStorage` keys are `paying-in-stop-v4` (inputs and UI state) and `paying-in-plans-v1` (saved plans). Bump the version if the saved shape changes.
 - **Inside claude.ai:** `window.claude.use('downloads')` provides saving, and `navigator.share` is blocked. Standalone, `saveBlob()` uses a normal download link and Share uses `navigator.share`. `IN_CLAUDE` switches between the two.
-- **Sharing needs a fresh tap:** `navigator.share` must be called directly from the tap, before any `await`. That's why `scheduleImage()` pre-builds the PNG.
+- **Sharing needs a fresh tap:** `navigator.share` must be called directly from the tap, before any `await`. That's why `scheduleImage()` pre-builds the PNG. Shared images are always the short, money-free one (`buildImage(true, true)`); the short image leaves out the Your future table.
 - **Market test speed:** the market test and the `payFor()` searches are the slow parts. Keep them in the delayed job in `render()`, never in the instant part.

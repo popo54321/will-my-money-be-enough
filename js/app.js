@@ -1018,7 +1018,8 @@
     return new Promise((res, rej) => { const el = document.createElement('script'); el.src = src; el.onload = res; el.onerror = rej; document.head.appendChild(el); });
   }
   // safe: leave out every money amount, whatever the tick box says (used for sharing)
-  async function buildImage(safe){
+  // short: leave out the Your future table, for an image that fits a phone screen (sharing always uses it)
+  async function buildImage(safe, short){
     if (!window.html2canvas) await loadScript(H2C);
     const bg = css('--bg') || '#FBF6EA';
     const wrap = document.createElement('div');
@@ -1027,7 +1028,7 @@
     head.innerHTML = '<div class="hero">' + document.querySelector('.hero').innerHTML + '</div><p class="note" style="margin:6px 0 0">' +
       esc(t('pdf.date', {d: new Date().toLocaleDateString(HTML_LANG[LANG] || 'en-GB', {day: 'numeric', month: 'long', year: 'numeric'})})) + '</p><p class="heads" style="margin:10px 0 0">' + esc(t('heads')) + '</p>';
     wrap.appendChild(head);
-    [$('rpg'), $('scFuture').closest('section'), $('smFuture').closest('section')].forEach(el => {
+    [$('rpg'), $('scFuture').closest('section'), short ? null : $('smFuture').closest('section')].filter(Boolean).forEach(el => {
       const c = el.cloneNode(true);
       c.querySelectorAll('details, button').forEach(n => n.remove());
       // keep it shareable: no amounts you'd need to level up
@@ -1044,12 +1045,12 @@
       return await new Promise((res, rej) => cv.toBlob(b => b ? res(b) : rej(new Error('blob')), 'image/png'));
     } finally { wrap.remove(); }
   }
-  const IMG_NAME = 'my-money-adventure.png';
+  const IMG_NAME = 'my-money-adventure.png', IMG_SHORT = 'my-money-adventure-short.png';
   // Inside the claude.ai viewer the page can only save files through the `downloads` capability,
   // and the Web Share API is blocked by the frame. Hosted on its own (GitHub Pages, Netlify...),
   // a normal download link and navigator.share both work.
   const IN_CLAUDE = !!(window.claude && typeof window.claude.use === 'function');
-  // imgCache follows the tick box (Save as image); imgSafe never shows money amounts (Share and the social buttons)
+  // imgCache follows the tick box (Save as image); imgSafe is short and never shows money amounts (Share and the social buttons)
   let imgCache = null, imgSafe = null, imgTimer = null;
   // navigator.share needs a fresh tap, so the images are built ahead of time while the Summary is open.
   function scheduleImage(){
@@ -1057,24 +1058,29 @@
     clearTimeout(imgTimer);
     if ($('pageSum').hidden) return;
     imgTimer = setTimeout(() => {
-      buildImage(true).then(b => { imgSafe = b; if (ui.hideAmts) imgCache = b; else return buildImage(false).then(b2 => { imgCache = b2; }); }).catch(() => {});
+      buildImage(true, true).then(b => { imgSafe = b; return buildImage(ui.hideAmts, false).then(b2 => { imgCache = b2; }); }).catch(() => {});
     }, 1500);
   }
   async function withBusy(fn){
-    const msg = $('pdfMsg'), btns = [$('imgBtn'), $('shareBtn')];
+    const msg = $('pdfMsg'), btns = [$('imgBtn'), $('imgShortBtn'), $('shareBtn')];
     btns.forEach(b => b.disabled = true); msg.textContent = t('img.making');
     try { await fn(); }
     catch (e){ msg.textContent = (e && (e.code === 'declined' || e.code === 'rate_limited' || e.name === 'AbortError')) ? '' : t('img.fail'); }
     finally { btns.forEach(b => b.disabled = false); }
   }
-  async function saveBlob(blob){
-    if (DL){ await DL.save({filename: IMG_NAME, data: blob}); return; }
+  async function saveBlob(blob, name){
+    name = name || IMG_SHORT;
+    if (DL){ await DL.save({filename: name, data: blob}); return; }
     const url = URL.createObjectURL(blob), a = document.createElement('a');
-    a.href = url; a.download = IMG_NAME; document.body.appendChild(a); a.click(); a.remove();
+    a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 4000);
   }
   function saveImage(){
-    return withBusy(async () => { await saveBlob(imgCache || await buildImage(false)); $('pdfMsg').textContent = ''; });
+    return withBusy(async () => { await saveBlob(imgCache || await buildImage(false), IMG_NAME); $('pdfMsg').textContent = ''; });
+  }
+  // the short image follows the tick box too; with amounts hidden it's the same as the shared one
+  function saveShort(){
+    return withBusy(async () => { await saveBlob(ui.hideAmts && imgSafe ? imgSafe : await buildImage(ui.hideAmts, true)); $('pdfMsg').textContent = ''; });
   }
   const shareText = () => lastRank ? t('share.text', {n: lastRank.n, name: lastRank.name}) : t('title');
   const pageUrl = () => /^https?:$/.test(location.protocol) ? location.href.split('#')[0] : '';
@@ -1082,7 +1088,7 @@
   // Returns true if the menu opened.
   function shareSafe(){
     if (!imgSafe || !navigator.canShare) return false;
-    const file = new File([imgSafe], IMG_NAME, {type: 'image/png'}), url = pageUrl();
+    const file = new File([imgSafe], IMG_SHORT, {type: 'image/png'}), url = pageUrl();
     if (!navigator.canShare({files: [file]})) return false;
     const data = {files: [file], title: t('title'), text: url ? shareText() + ' ' + url : shareText()};
     navigator.share(data).then(() => { $('pdfMsg').textContent = ''; })
@@ -1092,7 +1098,7 @@
   function shareImage(){
     if (shareSafe()) return;
     if (imgSafe) return withBusy(async () => { await saveBlob(imgSafe); $('pdfMsg').textContent = t('share.saved'); });
-    return withBusy(async () => { imgSafe = await buildImage(true); $('pdfMsg').textContent = t('share.ready'); });
+    return withBusy(async () => { imgSafe = await buildImage(true, true); $('pdfMsg').textContent = t('share.ready'); });
   }
   // Social buttons: on a phone they open the share menu with the money-free image and a link; elsewhere they save
   // that image and open the app's post window with the link and caption (no app lets a web page attach an image).
@@ -1113,7 +1119,7 @@
   }
   function showShareBar(){
     const canShare = !!(navigator.share && navigator.canShare);
-    $('imgBtn').hidden = IN_CLAUDE ? !DL : false;
+    $('imgBtn').hidden = $('imgShortBtn').hidden = IN_CLAUDE ? !DL : false;
     $('shareBtn').hidden = IN_CLAUDE ? true : !canShare;
     $('pdfBar').hidden = $('imgBtn').hidden && $('shareBtn').hidden;
   }
@@ -1638,6 +1644,7 @@
   $('tabSum').addEventListener('click', () => showTab('sum'));
   $('goCalc').addEventListener('click', () => showTab('calc'));
   $('imgBtn').addEventListener('click', saveImage);
+  $('imgShortBtn').addEventListener('click', saveShort);
   $('extras').addEventListener('click', e => {
     const a = e.target.closest('[data-add]'), r = e.target.closest('[data-rm]');
     if (a) addRow(a.dataset.add); else if (r) removeRow(r.dataset.rm, +r.dataset.i);

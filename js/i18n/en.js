@@ -14,9 +14,9 @@ MMA.i18n.en = {
   'ck.bigPay.saved.t': 'You can pay for it without borrowing. Keep that money somewhere safe until you need it, not in investments that can fall.',
   'ck.bigPay.part.t': 'A small loan is manageable. Saving a bit more first would shrink it, and the repayments will compete with your investing.',
   'ck.bigPay.loan.t': 'A big loan means years of repayments. Think about whether to wait, choose something cheaper, or save up first.',
-  'img.btn': 'Save as image', 'share.btn': 'Share', 'img.making': 'Making your image…', 'img.fail': 'Couldn’t make the image this time. Please try again.', 'pdf.date': 'Made on {d}',
+  'img.btn': 'Save full image', 'share.btn': 'Share', 'img.making': 'Making your image…', 'img.fail': 'Couldn’t make the image this time. Please try again.', 'pdf.date': 'Made on {d}',
   'share.saved': 'Image saved. Post it in your favourite app to share it.', 'share.text': 'I’m a Level {n} {name} on my money adventure!',
-  'img.private': 'Shared images never show money amounts. Saved images leave out the amounts you’d need to level up, so they’re safe to share too.',
+  'img.private': 'Shared images are the short version and never show money amounts. Saved images leave out the amounts you’d need to level up, so they’re safe to share too. The short image leaves out the Your future table, so it fits a phone screen.',
   'adv.h': 'Your adventurer', 'adv.level': 'Level {n} of {total}', 'adv.ret': 'Will it be enough?', 'adv.health': 'Money life today', 'adv.next': 'Next quests',
   'adv.all': 'See all 22 adventurers', 'adv.you': 'You', 'adv.lv': 'Lv {n}', 'adv.unknown': 'Your adventurer awaits',
   'adv.needRet': 'Add your spending after retirement in the calculator.', 'adv.needToday': 'Add your take-home pay and spending now in the calculator.', 'adv.wait': 'Reading the stars…',
@@ -432,5 +432,6 @@ MMA.i18n.en = {
   'quest.retNever': 'Untick “I’ll retire when I die” and pick a retirement age to start climbing this ladder.',
   'rk.labour': 'The Labourer',
   'rk.labour.d': 'You work until your last day. Whether you leave anything to your family depends on how healthy your money is today. But make a retirement plan for the day you no longer have the strength to work.',
-  'adv.comboLabour': 'Ticked “I’ll retire when I die”.'
+  'adv.comboLabour': 'Ticked “I’ll retire when I die”.',
+  'img.short': 'Save short image'
 };
