@@ -433,5 +433,6 @@ MMA.i18n.en = {
   'rk.labour': 'The Labourer',
   'rk.labour.d': 'You work until your last day. Whether you leave anything to your family depends on how healthy your money is today. But make a retirement plan for the day you no longer have the strength to work.',
   'adv.comboLabour': 'Ticked “I’ll retire when I die”.',
-  'img.short': 'Save short image'
+  'img.short': 'Save short image',
+  'f.growth.note': 'Not investing in anything? Use your bank account’s interest rate for both.'
 };
