@@ -1137,6 +1137,14 @@
     }
     else { fs = 'good'; fh = t('fut.good.h'); ft = t('fut.good.t', {L}); }
     $('scFutureH').textContent = fh; $('scFutureT').textContent = ft;
+    // A very long live-to age (over 100, or forever) is a much harder test and drags the level down.
+    // If the same plan lasts to 90 with steady growth, say so, so nobody thinks things are worse than they are.
+    let lifeNote = '';
+    if (goal && L > 100 && (fs === 'bad' || fs === 'ok') && p.retire < 90){
+      const q90 = makeModel(p, false);
+      if (ok(q90, run(q90, {stop: q90.H}), (90 - p.retire) * 12)) lifeNote = t('life.note', {L});
+    }
+    $('lifeNote').textContent = lifeNote; $('advLifeNote').textContent = lifeNote;
     $('scFuture').style.setProperty('--sc', ST_COL[fs] || 'var(--line)');
     // each row says which kind of market it assumes, so "never runs out" and a low chance don't look like they disagree
     const rainy = !goal ? '–' : (!lastMC ? '…' : (isFinite(lastMC.o10) ? t('goneAt', {a: ageAt(lastMC.o10, p)}) : t('fl.pastL', {L})));

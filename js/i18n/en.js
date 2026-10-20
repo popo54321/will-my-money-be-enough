@@ -415,5 +415,7 @@ MMA.i18n.en = {
   'social.saved': 'Image saved (no money amounts). Add it to your post.',
   'social.noImg': 'Your image is still being made. Wait a moment, then tap again to include it.',
   'm.p11': 'At a glance, Your future has five levels. Not on track yet: the money runs out too soon, or leaves less than you want to leave, even with steady growth. Close, but fragile: it lasts with steady growth, but in fewer than 3 of 4 market histories. On track: it lasts in at least 3 of 4. Rock solid: it lasts in 99 of 100, even after a fall in the first year of retirement. Dynastic Generational Wealth: Rock solid, and with steady growth the pot never shrinks in any month of retirement, even at 5 times your spending. “A bad run of markets” is the history that only 1 in 10 do worse than.',
-  'lv.f4.note': 'If you’re here, don’t worry about reaching the very top. Your money is already safe, and there are bigger things in the world for you to care about now than your finances.'
+  'lv.f4.note': 'If you’re here, don’t worry about reaching the very top. Your money is already safe, and there are bigger things in the world for you to care about now than your finances.',
+  'life.note': 'You’ve planned for your money to last to {L}. That’s a very long life, and it pulls your level down. With steady growth the same plan lasts to 90, so things are probably not this bad. Try the live-to slider at 90 to compare.',
+  'life.note.f': 'You’ve planned for your money to last forever. That’s a very long life, and it pulls your level down. With steady growth the same plan lasts to 90, so things are probably not this bad. Try the live-to slider at 90 to compare.'
 };

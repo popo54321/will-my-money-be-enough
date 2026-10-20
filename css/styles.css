@@ -281,3 +281,5 @@ h2.big::before{content:"";flex:none;width:14px;height:14px;border-radius:50% 0 5
 .lvfoot{margin:8px 0 0;font-size:.85rem;font-weight:700;color:var(--gold-ink);}
 .lvfoot:empty{display:none;}
 .lvnote{margin:6px 0 0 !important;font-size:.82rem;font-style:italic;color:var(--keep-ink);}
+.lifenote{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:var(--s1);color:var(--on-pastel);font-size:.88rem;line-height:1.45;}
+.lifenote:empty{display:none;}
