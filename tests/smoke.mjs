@@ -21,7 +21,7 @@ await page.waitForTimeout(4000);
 
 let problems = 0;
 const fail = msg => { problems++; console.error('✗ ' + msg); };
-const advName = () => page.evaluate(() => document.getElementById('advName').textContent);
+const rpgName = () => page.evaluate(() => document.getElementById('rpgName').textContent);
 const setLive = v => page.evaluate(v => { const l = document.getElementById('live'); l.value = v; l.dispatchEvent(new Event('input', {bubbles: true})); }, v);
 const checkText = async label => {
   const text = await page.evaluate(() => document.querySelector('main').innerText);
@@ -32,12 +32,12 @@ const checkText = async label => {
 };
 
 // no adventurer until every question is answered, and follow-ups wait for their question
-if (await advName() !== await page.evaluate(() => MMA.i18n.en['adv.unknown'])) fail('an adventurer was given before every question was answered');
+if (await rpgName() !== await page.evaluate(() => MMA.i18n.en['adv.unknown'])) fail('an adventurer was given before every question was answered');
 if (!(await page.evaluate(() => document.getElementById('fdBigPay').classList.contains('locked')))) fail('the follow-up to big spending is not greyed out');
 const answers = {sCar: 'none', sDeps: 'no', sKids: 'no', sBig: 'no', sWill: 'yes', sHealth: 'yes', sHomeIns: 'contents', sIncomeIns: 'yes', sCritical: 'yes', sAccident: 'yes'};
 for (const [id, v] of Object.entries(answers)) await page.selectOption('#' + id, v);
 await page.waitForTimeout(3000);
-if (await advName() === await page.evaluate(() => MMA.i18n.en['adv.unknown'])) fail('no adventurer after every question was answered');
+if (await rpgName() === await page.evaluate(() => MMA.i18n.en['adv.unknown'])) fail('no adventurer after every question was answered');
 
 for (const live of [90, 121]) {
   await setLive(live);
@@ -58,12 +58,12 @@ await page.click('#tabCalc');
 for (const [id, v] of Object.entries({start: '20,000,000', monthly: '5,000', sIncome: '30,000', sCash: '60,000'})) await page.fill('#' + id, v);
 await page.selectOption('#sHouse', 'own'); await page.selectOption('#sHomeIns', 'yes');
 await page.waitForTimeout(5000);
-if (await advName() !== 'God Emperor') fail(`expected the God Emperor, got ${await advName()}`);
+if (await rpgName() !== 'God Emperor') fail(`expected the God Emperor, got ${await rpgName()}`);
 await page.selectOption('#sWill', 'no');
 await page.waitForTimeout(4000);
-if (await advName() !== 'The Emperor') fail(`one Okay answer should drop to The Emperor, got ${await advName()}`);
+if (await rpgName() !== 'The Emperor') fail(`one Okay answer should drop to The Emperor, got ${await rpgName()}`);
 
-const rank = await page.evaluate(() => document.getElementById('advName').textContent);
+const rank = await page.evaluate(() => document.getElementById('rpgName').textContent);
 console.log('Adventurer shown:', rank);
 if (errors.length) fail('script errors:\n  ' + errors.join('\n  '));
 await browser.close();

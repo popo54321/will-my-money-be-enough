@@ -39,6 +39,7 @@ A static, no-build web app: "Will My Money Be Enough?", a gamified retirement an
 10. **Ranks:** no adventurer until every Summary question is answered (`missing` in `renderSummary()`). Follow-up questions are greyed out until the question they follow is answered. Level 21 (God Emperor) is never reached through the ladders alone.
 
 ## Gotchas
+- **Ad blockers:** never start a class or id with `adv`, `ad-`, `ads`, `banner` or `sponsor`. Ad-block lists (EasyList, built into Edge and others) hide them; `.advtop` once made the rank vanish on phones. The rank block uses `rpg…` names.
 - **Rows you can add:** other income (`in<N>…`) and one-off amounts (`on<N>…`) are built by `buildRows()`; their counts sit in the hidden inputs `nInc` and `nOne`, so saves and plans remember them. `rowCount()` reads older saves that always had 3 rows.
 - **Amounts shown:** actual future amounts are the default (`ui.unit = 'cash'`); a saved "today's prices" choice is kept only when `ui.unitSet` says the person picked it.
 - **Saved data:** `localStorage` keys are `paying-in-stop-v4` (inputs and UI state) and `paying-in-plans-v1` (saved plans). Bump the version if the saved shape changes.

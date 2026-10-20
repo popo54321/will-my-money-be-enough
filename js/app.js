@@ -912,15 +912,15 @@
     let n = (rl && hl && !c.missing.length) ? rankOf(rl, hl) : 0;
     const emperor = rankOf(4, 5);
     if (n === emperor && c.perfect && R.god && R.god.ok) n = GOD;
-    $('advRetName').textContent = rl ? t('lr.' + rl) : '–';
-    $('advRetSteps').innerHTML = steps(rl || 0, 4);
-    $('advHealthName').textContent = hl ? t('lh.' + hl) : '–';
-    $('advHealthSteps').innerHTML = steps(hl || 0, 5);
-    const icon = $('advIcon');
+    $('rpgRetName').textContent = rl ? t('lr.' + rl) : '–';
+    $('rpgRetSteps').innerHTML = steps(rl || 0, 4);
+    $('rpgHealthName').textContent = hl ? t('lh.' + hl) : '–';
+    $('rpgHealthSteps').innerHTML = steps(hl || 0, 5);
+    const icon = $('rpgIcon');
     if (!n){
       icon.innerHTML = ICONS.unknown; icon.style.setProperty('--tierbg', '#F3EEE2');
-      $('advLvl').textContent = '';
-      $('advName').textContent = t('adv.unknown');
+      $('rpgLvl').textContent = '';
+      $('rpgName').textContent = t('adv.unknown');
       lastRank = null;
       const need = [];
       if (!c.goal) need.push(t('adv.needRet'));
@@ -931,15 +931,15 @@
         need.push(row.querySelector('.ans') ? t('adv.needAll', {n: c.missing.length, item: row.querySelector('.q').textContent}) : row.querySelector('.a').textContent);
       }
       if (!need.length) need.push(t('adv.wait'));
-      $('advDesc').textContent = join(need);
-      $('advQuests').innerHTML = '';
+      $('rpgDesc').textContent = join(need);
+      $('rpgQuests').innerHTML = '';
     } else {
       const rk = RANKS[n];
       icon.innerHTML = ICONS[rk.k]; icon.style.setProperty('--tierbg', tierBg(n));
-      $('advLvl').textContent = t('adv.level', {n, total: TOP});
-      $('advName').textContent = t('rk.' + rk.k);
+      $('rpgLvl').textContent = t('adv.level', {n, total: TOP});
+      $('rpgName').textContent = t('rk.' + rk.k);
       lastRank = {n, name: t('rk.' + rk.k)};
-      $('advDesc').textContent = t('rk.' + rk.k + '.d');
+      $('rpgDesc').textContent = t('rk.' + rk.k + '.d');
       const quests = [];
       const qOf = it => { const el = $('rw' + it.key); return el ? el.querySelector('.q').textContent : ''; };
       if (n === GOD) quests.push({label: t('quest.final'), top: true, god: true, text: t('quest.godTop')});
@@ -980,7 +980,7 @@
           quests.push({label: t('quest.health'), to, text});
         }
       }
-      $('advQuests').innerHTML = quests.map(qq => '<div class="quest"><div class="qicon" style="background:' + (qq.to ? tierBg(RANKS.indexOf(qq.to)) : (qq.god ? GOD_BG : '#F6E6B4')) + '">' +
+      $('rpgQuests').innerHTML = quests.map(qq => '<div class="quest"><div class="qicon" style="background:' + (qq.to ? tierBg(RANKS.indexOf(qq.to)) : (qq.god ? GOD_BG : '#F6E6B4')) + '">' +
         (qq.to ? ICONS[qq.to.k] : (qq.god ? ICONS.god : ICONS.emperor)) + '</div><div><p class="qt">' + esc(qq.label) + '</p>' +
         (qq.to ? '<p class="qn">' + esc(t('quest.to', {name: t('rk.' + qq.to.k)})) + '</p>' : '') + '<p class="qa">' + esc(qq.text) + '</p></div></div>').join('');
     }
@@ -997,8 +997,8 @@
     if (!rankSel){ box.hidden = true; return; }
     const rk = RANKS[rankSel];
     box.hidden = false;
-    box.innerHTML = '<div class="ri" style="background:' + tierBg(rankSel) + '">' + ICONS[rk.k] + '</div><div><p class="rl">' + esc(t('adv.level', {n: rankSel, total: TOP})) + '</p><p class="advname">' + esc(t('rk.' + rk.k)) +
-      '</p><p class="advdesc">' + esc(t('rk.' + rk.k + '.d')) + '</p><p class="note" style="margin:6px 0 0">' +
+    box.innerHTML = '<div class="ri" style="background:' + tierBg(rankSel) + '">' + ICONS[rk.k] + '</div><div><p class="rl">' + esc(t('adv.level', {n: rankSel, total: TOP})) + '</p><p class="rpgname">' + esc(t('rk.' + rk.k)) +
+      '</p><p class="rpgdesc">' + esc(t('rk.' + rk.k + '.d')) + '</p><p class="note" style="margin:6px 0 0">' +
       esc(rankSel === GOD ? t('adv.comboGod') : t('adv.combo', {r: t('lr.' + rk.r), h: t('lh.' + rk.h)})) + '</p></div>';
   }
 
@@ -1019,7 +1019,7 @@
     head.innerHTML = '<div class="hero">' + document.querySelector('.hero').innerHTML + '</div><p class="note" style="margin:6px 0 0">' +
       esc(t('pdf.date', {d: new Date().toLocaleDateString(HTML_LANG[LANG] || 'en-GB', {day: 'numeric', month: 'long', year: 'numeric'})})) + '</p><p class="heads" style="margin:10px 0 0">' + esc(t('heads')) + '</p>';
     wrap.appendChild(head);
-    [$('adv'), $('scFuture').closest('section'), $('smFuture').closest('section')].forEach(el => {
+    [$('rpg'), $('scFuture').closest('section'), $('smFuture').closest('section')].forEach(el => {
       const c = el.cloneNode(true);
       c.querySelectorAll('details, button').forEach(n => n.remove());
       // keep it shareable: no amounts you'd need to level up
@@ -1310,7 +1310,7 @@
       if (LV.indexOf(life90.fs) < LV.indexOf(fs) || n90 > adv.n)
         lifeNote = join([t('life.note', {L, lvl: t('fut.' + life90.fs + '.h')}), n90 ? t('life.rank', {n: n90, name: t('rk.' + RANKS[n90].k)}) : '', t('life.try')]);
     }
-    $('lifeNote').textContent = lifeNote; $('advLifeNote').textContent = lifeNote;
+    $('lifeNote').textContent = lifeNote; $('rpgLifeNote').textContent = lifeNote;
     // the next step up, worked out in the background, and a kind word for anyone below On track
     let next = '';
     if (nextHelp && (nextHelp.age || nextHelp.spend)){

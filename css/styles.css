@@ -207,13 +207,13 @@ h2.big::before{content:"";flex:none;width:14px;height:14px;border-radius:50% 0 5
 .heads{margin:-12px 0 22px;padding:10px 14px;border-radius:14px;border:1px dashed var(--keep-soft);background:var(--surface);font-size:.84rem;line-height:1.5;color:var(--muted);max-width:62ch;}
 .pdfbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 14px;}
 .pdfbar[hidden]{display:none;}
-.advtop{display:flex;gap:16px;align-items:center;margin-top:10px;}
-.advicon{flex:none;width:104px;height:104px;border-radius:50%;background:var(--tierbg,#EFE6D8);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 4px rgba(255,255,255,.65),0 6px 16px rgba(93,166,125,.15);}
-.advicon svg{width:74px;height:74px;}
-.advlvl{margin:0;font-size:.8rem;font-weight:800;color:var(--keep-ink);letter-spacing:.02em;}
-.advlvl:empty{display:none;}
-.advname{margin:2px 0 4px;font-size:1.5rem;font-weight:800;line-height:1.15;}
-.advdesc{margin:0;font-size:.95rem;}
+.rpgtop{display:flex;gap:16px;align-items:center;margin-top:10px;}
+.rpgicon{flex:none;width:104px;height:104px;border-radius:50%;background:var(--tierbg,#EFE6D8);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 4px rgba(255,255,255,.65),0 6px 16px rgba(93,166,125,.15);}
+.rpgicon svg{width:74px;height:74px;}
+.rpglvl{margin:0;font-size:.8rem;font-weight:800;color:var(--keep-ink);letter-spacing:.02em;}
+.rpglvl:empty{display:none;}
+.rpgname{margin:2px 0 4px;font-size:1.5rem;font-weight:800;line-height:1.15;}
+.rpgdesc{margin:0;font-size:.95rem;}
 .ladders{display:grid;gap:12px;margin-top:18px;}
 @media (min-width:640px){.ladders{grid-template-columns:1fr 1fr;}}
 .ladder p{display:flex;justify-content:space-between;gap:8px;margin:0 0 6px;font-size:.85rem;color:var(--muted);}
@@ -252,8 +252,8 @@ h2.big::before{content:"";flex:none;width:14px;height:14px;border-radius:50% 0 5
 .rankinfo .ri{flex:none;width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
 .rankinfo .ri svg{width:48px;height:48px;}
 .rankinfo .rl{font-size:.75rem;color:var(--muted);font-weight:700;margin:0;}
-.rankinfo .advname{font-size:1.2rem;}
-.rankinfo .advdesc{margin:0;}
+.rankinfo .rpgname{font-size:1.2rem;}
+.rankinfo .rpgdesc{margin:0;}
 /* follow-up questions wait, greyed out, for the question they follow */
 .field.locked label,.field.locked .box{opacity:.45;}
 .field.locked select{cursor:not-allowed;}
