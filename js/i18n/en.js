@@ -34,7 +34,7 @@ MMA.i18n.en = {
   'rk.wanderer': 'Lost Traveller', 'rk.wanderer.d': 'Lost in the forest with no map. Find solid ground today first; the journey can wait.',
   'rk.smith': 'Blacksmith’s Apprentice', 'rk.smith.d': 'Training at the forge. Working hard, but the purse is still empty and there’s no plan for the journey yet.',
   'rk.pirate': 'Shipwrecked Pirate', 'rk.pirate.d': 'Your ship is leaking, but if you can mend it you can still sail home. Plug the leak first.',
-  'rk.rat': 'Street Kid', 'rk.rat.d': 'Gets by on quick wits from day to day, with nothing put away for later.',
+  'rk.rat': 'Young Freelancer', 'rk.rat.d': 'Takes job after job from the quest board and gets by on skill, but has nothing put away for later yet.',
   'rk.hedge': 'Wandering Knight', 'rk.hedge.d': 'A dented shield and few supplies. The quest is still possible, but the risks are many.',
   'rk.prince': 'Exiled Prince', 'rk.prince.d': 'Your kingdom is still safe if you get through the exile and go back to reclaim it. Get your monthly money steady first.',
   'rk.bard': 'Wandering Bard', 'rk.bard.d': 'Sings happily about today, but hasn’t packed supplies for the road ahead.',
