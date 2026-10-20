@@ -53,6 +53,7 @@ Libraries load from a CDN, with versions pinned: Chart.js 4.4.1 (jsDelivr), html
 - **Adventurer rank:** two ladders put together.
   - Retirement ladder: Runs out, Fragile, Secure, Unshakeable.
   - Health ladder: In crisis, Struggling, Stretched, Steady, Thriving.
+  - At a glance: each card has "See all levels", listing every level from the top (Rock solid / Everything healthy) down, with where you are and how many steps are left.
   - No rank until every question is answered. Follow-up questions (for example "Do you have enough money for it?" after big spending) stay greyed out until the question they follow is answered.
   - God Emperor (level 21): The Emperor, plus every check in the Summary Healthy (so renting, which counts as Okay, rules it out), plus a pot that, with steady growth, never gets smaller in any month of retirement even at 5 times your planned spending, up to 120 and forever after.
 

@@ -5,7 +5,7 @@ MMA.i18n = MMA.i18n || {};
 MMA.i18n.en = {
   'ck.kidCost.life.t': 'That works, but a tight budget every month wears you down. A small cash cushion just for child costs helps when something unexpected comes up.',
   'ck.kidCost.invest.t': 'That works for now, but investing less slows your retirement plan. Put the lower amount in the calculator so the plan shows the real picture.',
-  'ck.kidCost.life': 'Yes, but only by cutting back on everyday life',
+  'ck.kidCost.life': 'Yes, but only by reducing my current lifestyle',
   'ck.kidCost.invest': 'Yes, but only by investing less',
   'share.ready': 'Your image is ready. Tap Share again.',
   'ck.big': 'Any big spending planned in the next few years? (a car, a home, a wedding…)', 'ck.big.yes.t': 'Add it as a one-off amount in the calculator so the plan includes it.',
@@ -383,5 +383,23 @@ MMA.i18n.en = {
   'x.addOne': '+ Add a one-off amount',
   'x.rm': 'Remove',
   'x.incN': 'Income {n}',
-  'x.oneN': 'Amount {n}'
+  'x.oneN': 'Amount {n}',
+  // At a glance: all levels
+  'lv.all': 'See all levels',
+  'lv.here': 'You’re here',
+  'lv.top': 'You’re at the top.',
+  'lv.step1': '1 step to the top.',
+  'lv.steps': '{n} steps to the top.',
+  'fut.gold.h': 'Rock solid',
+  'fut.gold.t': 'Your money lasts to {L} in 99 of 100 market histories, even after a bad start.',
+  'fut.gold.t.f': 'Your money never runs out in 99 of 100 market histories, even after a bad start.',
+  'lv.f4': 'Lasts in 99 of 100 market histories, even with a {f} fall in the first year of retirement.',
+  'lv.f3': 'Lasts with steady growth, and in at least 3 of 4 market histories.',
+  'lv.f2': 'Lasts with steady growth, but in fewer than 3 of 4 market histories.',
+  'lv.f1': 'Runs out too soon, or leaves less than you want to leave, even with steady growth.',
+  'today.gold.h': 'Everything healthy',
+  'lv.t4': 'Every check is Healthy, with every question answered.',
+  'lv.t3': 'Nothing needs attention, and at least as many checks are Healthy as Okay.',
+  'lv.t2': 'Nothing needs attention, but more checks are Okay than Healthy.',
+  'lv.t1': 'At least one check needs attention.'
 };

@@ -2,7 +2,7 @@
   --bg:#FBF6EA; --surface:#FFFFFF; --ink:#34493F; --muted:#78897E; --line:#EADFC8; --grid:rgba(52,73,63,0.07);
   --keep:#5DA67D; --keep-soft:#CFECD8; --keep-ink:#3B7F5C; --keep-fill:rgba(141,205,163,0.24); --stop:#B5CBB9; --stop-ink:#6E8A77;
   --s1:#F8D9B6; --s1-ink:#A6662E; --s2:#F6CCD3; --s2-ink:#A75365; --s3:#DCD6F2; --s3-ink:#6A5DA6; --coast:#C6EBD9; --coast-ink:#2F8469;
-  --on-pastel:#34493F;
+  --on-pastel:#34493F; --gold:#F3D98A; --gold-ink:#946A10;
   color-scheme:light;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
@@ -12,7 +12,7 @@
   --bg:#15211D; --surface:#1C2B26; --ink:#E2EFE7; --muted:#9BB4A9; --line:#2D433A; --grid:rgba(226,239,231,0.07);
   --keep:#86D1AB; --keep-soft:#9AD9B8; --keep-ink:#9BDDBA; --keep-fill:rgba(134,209,171,0.15); --stop:#7F9A8E; --stop-ink:#A9C0B5;
   --s1:#EDBF93; --s1-ink:#F2C8A0; --s2:#ECAFBD; --s2-ink:#F2BCC8; --s3:#C3B8EC; --s3-ink:#CEC5F1; --coast:#8ED6C2; --coast-ink:#9DDDCB;
-  --on-pastel:#15211D;
+  --on-pastel:#15211D; --gold:#E6C86E; --gold-ink:#F0D68E;
   color-scheme:dark;
 }
 html{background:var(--bg);scroll-padding-top:env(safe-area-inset-top,0px);}
@@ -267,3 +267,16 @@ h2.big::before{content:"";flex:none;width:14px;height:14px;border-radius:50% 0 5
 .xhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:0 0 8px;font-size:.88rem;font-weight:700;}
 .xrm{background:none;border:0;padding:4px 0;color:var(--s2-ink);font:inherit;font-size:.82rem;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
 .xadd{margin:10px 0 4px;}
+/* "See all levels" under each At a glance card */
+.levels{margin-top:10px;}
+.levels summary{cursor:pointer;font-size:.85rem;font-weight:700;color:var(--keep-ink);padding:4px 0;}
+.lvlist{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:8px;}
+.lvlist li{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:12px;opacity:.7;}
+.lvlist li.here{opacity:1;background:var(--surface);box-shadow:inset 0 0 0 2px var(--keep);}
+.lvdot{flex:none;width:14px;height:14px;border-radius:50%;margin-top:4px;}
+.lvlist p{margin:0;}
+.lvname{font-weight:700;font-size:.9rem;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;}
+.lvhere{font-size:.68rem;font-weight:800;background:var(--keep-soft);color:var(--on-pastel);border-radius:8px;padding:1px 8px;}
+.lvdesc{font-size:.82rem;color:var(--muted);}
+.lvfoot{margin:8px 0 0;font-size:.85rem;font-weight:700;color:var(--gold-ink);}
+.lvfoot:empty{display:none;}

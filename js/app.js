@@ -1070,7 +1070,15 @@
 
   /* ---------- summary page ---------- */
   let lastChance = null;
-  const ST_COL = {good: 'var(--keep-soft)', ok: 'var(--s1)', bad: 'var(--s2)'};
+  const ST_COL = {gold: 'var(--gold)', good: 'var(--keep-soft)', ok: 'var(--s1)', bad: 'var(--s2)'};
+  // "See all levels" under each At a glance card: every level, best first, with where you are and how far from the top
+  const LEVELS = ['gold', 'good', 'ok', 'bad'];
+  function renderLevels(id, head, desc, cur, vars){
+    const pos = LEVELS.indexOf(cur);
+    $(id).innerHTML = LEVELS.map((st, i) => '<li' + (st === cur ? ' class="here"' : '') + '><span class="lvdot" style="background:' + ST_COL[st] + '"></span><div><p class="lvname">' +
+      esc(t(head + '.' + st + '.h')) + (st === cur ? '<span class="lvhere">' + esc(t('lv.here')) + '</span>' : '') + '</p><p class="lvdesc">' + esc(t(desc + (LEVELS.length - i), vars)) + '</p></div></li>').join('');
+    $(id + 'Foot').textContent = pos < 0 ? '' : (pos === 0 ? t('lv.top') : t(pos === 1 ? 'lv.step1' : 'lv.steps', {n: pos}));
+  }
   function stPill(id, st){
     const el = $(id);
     el.textContent = t('st.' + st);
@@ -1103,6 +1111,7 @@
     if (!goal){ fs = 'na'; fh = t('fut.noGoal.h'); ft = t('fut.noGoal.t'); }
     else if (!steadyOk){ fs = 'bad'; fh = t('fut.bad.h'); ft = goneBy(R, R.keep) ? t('fut.bad.t', {A: ageText(R.keep.out, p), L}) : t('fut.short.t', {L}); }
     else if (lastChance !== null && lastChance < 0.75){ fs = 'ok'; fh = t('fut.ok.h'); ft = t('fut.ok.t', {L, c: Math.round(lastChance * 100) + '%'}); }
+    else if (lastChance !== null && lastChance >= 0.99 && ok(q, R.shock, nL)){ fs = 'gold'; fh = t('fut.gold.h'); ft = t('fut.gold.t', {L}); }
     else { fs = 'good'; fh = t('fut.good.h'); ft = t('fut.good.t', {L}); }
     $('scFutureH').textContent = fh; $('scFutureT').textContent = ft;
     $('scFuture').style.setProperty('--sc', ST_COL[fs] || 'var(--line)');
@@ -1206,6 +1215,8 @@
       f.classList.toggle('locked', locked);
       f.querySelector('select').disabled = locked;
       if (locked) f.hidden = false;
+      // answered in a way that doesn't need the follow-up: forget its old answer so it doesn't come back later
+      else if (f.hidden) f.querySelector('select').value = '';
     });
 
     // ---- overall ----
@@ -1215,11 +1226,13 @@
     let th, ts = 'na';
     if (!total || I === null || S === null){ th = t('today.na.h'); $('scTodayT').textContent = t('today.na.t'); }
     else {
-      ts = cnt.bad > 0 ? 'bad' : (cnt.ok > cnt.good ? 'ok' : 'good');
+      ts = cnt.bad > 0 ? 'bad' : (cnt.ok > cnt.good ? 'ok' : (cnt.ok === 0 && !missing.length ? 'gold' : 'good'));
       th = t('today.' + ts + '.h');
       $('scTodayT').textContent = t('today.t', {g: cnt.good, o: cnt.ok, b: cnt.bad});
     }
     $('scTodayH').textContent = th;
+    renderLevels('lvFuture', 'fut', 'lv.f', fs, {f: pct(p.fall)});
+    renderLevels('lvToday', 'today', 'lv.t', ts);
     $('scToday').style.setProperty('--sc', ST_COL[ts] || 'var(--line)');
     $('smCounts').innerHTML = (total && I !== null && S !== null) ? ['good', 'ok', 'bad'].map(k => '<span style="background:' + ST_COL[k] + '">' + esc(t('cnt.' + k, {n: cnt[k]})) + '</span>').join('') : '';
     $('hideAmts').checked = ui.hideAmts;
