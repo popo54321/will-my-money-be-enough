@@ -139,7 +139,7 @@ MMA.i18n.en = {
   lang: 'Language', title: 'Will My Money Be Enough?',
   heads: 'A friendly heads-up: this is for fun and exploring, not financial advice. The maths is real, but it runs on numbers you choose, like growth and inflation, and those are only guesses about the future. Change them and your results get better or worse, so treat it as a game, not a forecast of what will actually happen.',
   sub: 'Every money adventurer starts somewhere. Find out if your gold will last the whole journey, how healthy your everyday money is, and which adventurer you are today.',
-  'toc.scen': 'Scenarios', 'toc.ret': 'After you retire', 'toc.mkt': 'Markets up and down', 'toc.ages': 'Retiring earlier or later',
+  'toc.scen': 'Stop adding money early?', 'toc.ret': 'After you retire', 'toc.mkt': 'Markets up and down', 'toc.ages': 'Retiring earlier or later',
   'toc.pay': 'How much to invest', 'toc.decide': 'Keep investing?', 'toc.plans': 'Compare plans',
   yourNumbers: 'Your numbers', none: 'None',
   'f.start': 'Pot today', 'f.monthly': 'Investing each month', 'f.raise': 'Raise your investing each year', 'f.raise.h': 'Blank means never raised', 'f.raise.ph': 'Never',
@@ -168,7 +168,7 @@ MMA.i18n.en = {
   'f.yield': 'Cash payouts a year', 'f.yield.h': 'Dividends and interest. Part of the growth rate, not extra',
   'rt.div': 'Cash payouts a month', 'rt.val': 'Growth in value a month', 'rt.fee': 'Fees a month', 'rt.tot': 'Total it earns a month', 'rt.inc': 'Other income a month',
   'rt.wd': 'Taken from the pot a month', 'rt.tax': 'Of which tax', 'rt.share': 'Share of the pot taken out a year', 'rt.what': 'What happens',
-  'rt.note': 'Figures are for your first month of retirement. The stop column uses the age on the “Stop investing” slider above.', liveTo: 'Live to age',
+  'rt.note': 'Figures are for your first month of retirement. The stop column uses the age on the “Stop adding money” slider below.', liveTo: 'Live to age',
   'mkt.intro': 'Everything above assumes steady growth every year. Real markets jump around, and bad years early in retirement hurt most, because you’re selling while prices are low. So we test your plan in 1,000 made-up futures. In each one, markets rise and fall at random but grow at your rates on average. Then we count how often the money lasts.',
   'f.vol1': 'Ups and downs a year before retirement', 'f.vol1.h': 'Most years land within this much above or below your growth rate', 'f.vol2': 'Ups and downs a year after retirement',
   'run.poor': 'Rainy years', 'run.typ': 'Average years', 'run.good': 'Sunny years', 'key.band': 'Where 8 in 10 possible futures land', steady: 'Steady growth',
@@ -445,5 +445,8 @@ MMA.i18n.en = {
   'ck.job.no': 'No, not right now',
   'ck.job.steady.t': 'A steady income is what everything else is built on.',
   'ck.job.unsteady.t': 'Income that goes up and down needs a bigger cash cushion. Aim for at least six months of spending in cash, and plan around your leaner months.',
-  'ck.job.no.t': 'Without income from work, your savings are carrying you. Keep spending tight and protect your cash until money is coming in again.'
+  'ck.job.no.t': 'Without income from work, your savings are carrying you. Keep spending tight and protect your cash until money is coming in again.',
+  'scen.h': 'Bonus question: when could you stop adding money?',
+  'scen.intro': 'This part isn’t about whether your retirement works: that’s “After you retire” above. It looks for the point where the pot grows so much on its own that the money you add each month barely matters. “Not reached” just means your monthly money keeps mattering, which is normal for most people.',
+  'scen.no': 'Not reached'
 };

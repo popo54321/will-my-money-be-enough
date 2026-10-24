@@ -586,7 +586,7 @@
   function scenRow(k, m, p, R){
     const q = R.q;
     if (xTotal(p) <= 0) return setRow(k, '–', '', t('nothingIn'));
-    if (m === null) return setRow(k, t('never'), '', t((q.rA <= 0 && q.rB <= 0) ? 'scen.neverInfl' : 'scen.never100'));
+    if (m === null) return setRow(k, t('scen.no'), '', t((q.rA <= 0 && q.rB <= 0) ? 'scen.neverInfl' : 'scen.never100'));
     const P = R.acc.pot[m], g = R.acc.gr[m], c = R.acc.co[m];
     const nom = xTotal(p) * Math.pow(1 + p.raise, Math.floor(m / 12));
     const pre = m === 0 ? t('scen.already') : (m <= q.H ? '' : t('scen.afterRet', {r: p.retire}));

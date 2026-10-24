@@ -21,7 +21,7 @@
   <div class="tabs" role="tablist"><button type="button" role="tab" id="tabCalc" data-tab="calc" aria-selected="true" data-t="tab.calc"></button><button type="button" role="tab" id="tabSum" data-tab="sum" aria-selected="false" data-t="tab.sum"></button></div>
   <div id="pageCalc">
       <nav class="toc" id="toc">
-        <a href="#s-scen" data-t="toc.scen"></a><a href="#s-ret" data-t="toc.ret"></a><a href="#s-mkt" data-t="toc.mkt"></a><a href="#s-ages" data-t="toc.ages"></a><a href="#s-pay" data-t="toc.pay"></a><a href="#s-decide" data-t="toc.decide"></a><a href="#s-today" data-t="sm.today"></a><a href="#s-life" data-t="sm.check.h"></a><a href="#s-ins" data-t="sm.ins.h"></a><a href="#s-plans" data-t="toc.plans"></a>
+        <a href="#s-ret" data-t="toc.ret"></a><a href="#s-scen" data-t="toc.scen"></a><a href="#s-mkt" data-t="toc.mkt"></a><a href="#s-ages" data-t="toc.ages"></a><a href="#s-pay" data-t="toc.pay"></a><a href="#s-decide" data-t="toc.decide"></a><a href="#s-today" data-t="sm.today"></a><a href="#s-life" data-t="sm.check.h"></a><a href="#s-ins" data-t="sm.ins.h"></a><a href="#s-plans" data-t="toc.plans"></a>
       </nav>
 
   <section class="panel" aria-labelledby="h-inputs">
@@ -73,7 +73,47 @@
     <button class="reset" id="reset" type="button" data-t="reset"></button>
   </section>
 
+  <section class="part" id="s-ret" aria-labelledby="h-ret">
+    <h2 class="big" id="h-ret" data-t="toc.ret"></h2>
+    <p class="intro" data-t="ret.intro"></p>
+    <div class="grid">
+      <div class="field"><label for="yield" data-l="f.yield" data-h="f.yield.h"></label><div class="box"><input id="yield" data-save inputmode="decimal" autocomplete="off"><span class="suf" data-t="ofPot"></span></div></div>
+    </div>
+    <p class="rlead" id="rLead"></p>
+    <div class="rtable" role="table">
+      <div class="rrow rhead" role="row"><span role="columnheader"></span><span role="columnheader" data-t="keepPaying"></span><span role="columnheader" id="rStopHead"></span></div>
+      <div class="rrow" role="row"><span role="rowheader" id="rl0"></span><span id="rk0"></span><span id="rs0"></span></div>
+      <div class="rrow" role="row"><span role="rowheader" data-t="rt.div"></span><span id="rk1"></span><span id="rs1"></span></div>
+      <div class="rrow" role="row"><span role="rowheader" data-t="rt.val"></span><span id="rk2"></span><span id="rs2"></span></div>
+      <div class="rrow" role="row" id="rrFee"><span role="rowheader" data-t="rt.fee"></span><span id="rk3"></span><span id="rs3"></span></div>
+      <div class="rrow" role="row"><span role="rowheader" data-t="rt.tot"></span><span id="rk4"></span><span id="rs4"></span></div>
+      <div class="rrow" role="row" id="rrInc"><span role="rowheader" data-t="rt.inc"></span><span id="rk5"></span><span id="rs5"></span></div>
+      <div class="rrow" role="row"><span role="rowheader" data-t="rt.wd"></span><span id="rk6"></span><span id="rs6"></span></div>
+      <div class="rrow" role="row" id="rrTax"><span role="rowheader" data-t="rt.tax"></span><span id="rk7"></span><span id="rs7"></span></div>
+      <div class="rrow" role="row"><span role="rowheader" data-t="rt.share"></span><span id="rk8"></span><span id="rs8"></span></div>
+      <div class="rrow" role="row"><span role="rowheader" data-t="rt.what"></span><span id="rk9"></span><span id="rs9"></span></div>
+    </div>
+    <p class="note" style="margin-top:6px" data-t="rt.note"></p>
+    <div class="stopper">
+      <div class="stop-head"><label for="live" data-t="liveTo"></label><output id="liveOut" for="live"></output></div>
+      <input type="range" id="live" min="61" max="121" step="1" value="90">
+      <p class="compare-title" id="leftTitle"></p>
+      <div class="figs">
+        <p class="fig ck"><span data-t="keepPaying"></span><strong id="leftK"></strong></p>
+        <p class="fig cs"><span id="leftSLabel"></span><strong id="leftS"></strong></p>
+      </div>
+      <p class="ratio" id="leftNote"></p>
+    </div>
+    <div class="block" style="margin-top:22px">
+      <h2 id="h-retc"></h2>
+      <div class="chart"><canvas id="retChart" role="img"></canvas></div>
+      <p class="rneed" id="rNeed"></p>
+    </div>
+  </section>
+
   <section class="verdict" id="s-scen" aria-live="polite">
+    <h2 class="big" id="h-scen" data-t="scen.h"></h2>
+    <p class="intro" data-t="scen.intro"></p>
     <p class="lead" id="lead"></p>
     <p class="today" id="unitNote"></p>
     <div class="row c1"><span class="tag">1</span><div>
@@ -123,44 +163,6 @@
   <section class="block" aria-labelledby="h-share">
     <h2 id="h-share" data-t="share.h"></h2>
     <div class="chart"><canvas id="shareChart" role="img"></canvas></div>
-  </section>
-
-  <section class="part" id="s-ret" aria-labelledby="h-ret">
-    <h2 class="big" id="h-ret" data-t="toc.ret"></h2>
-    <p class="intro" data-t="ret.intro"></p>
-    <div class="grid">
-      <div class="field"><label for="yield" data-l="f.yield" data-h="f.yield.h"></label><div class="box"><input id="yield" data-save inputmode="decimal" autocomplete="off"><span class="suf" data-t="ofPot"></span></div></div>
-    </div>
-    <p class="rlead" id="rLead"></p>
-    <div class="rtable" role="table">
-      <div class="rrow rhead" role="row"><span role="columnheader"></span><span role="columnheader" data-t="keepPaying"></span><span role="columnheader" id="rStopHead"></span></div>
-      <div class="rrow" role="row"><span role="rowheader" id="rl0"></span><span id="rk0"></span><span id="rs0"></span></div>
-      <div class="rrow" role="row"><span role="rowheader" data-t="rt.div"></span><span id="rk1"></span><span id="rs1"></span></div>
-      <div class="rrow" role="row"><span role="rowheader" data-t="rt.val"></span><span id="rk2"></span><span id="rs2"></span></div>
-      <div class="rrow" role="row" id="rrFee"><span role="rowheader" data-t="rt.fee"></span><span id="rk3"></span><span id="rs3"></span></div>
-      <div class="rrow" role="row"><span role="rowheader" data-t="rt.tot"></span><span id="rk4"></span><span id="rs4"></span></div>
-      <div class="rrow" role="row" id="rrInc"><span role="rowheader" data-t="rt.inc"></span><span id="rk5"></span><span id="rs5"></span></div>
-      <div class="rrow" role="row"><span role="rowheader" data-t="rt.wd"></span><span id="rk6"></span><span id="rs6"></span></div>
-      <div class="rrow" role="row" id="rrTax"><span role="rowheader" data-t="rt.tax"></span><span id="rk7"></span><span id="rs7"></span></div>
-      <div class="rrow" role="row"><span role="rowheader" data-t="rt.share"></span><span id="rk8"></span><span id="rs8"></span></div>
-      <div class="rrow" role="row"><span role="rowheader" data-t="rt.what"></span><span id="rk9"></span><span id="rs9"></span></div>
-    </div>
-    <p class="note" style="margin-top:6px" data-t="rt.note"></p>
-    <div class="stopper">
-      <div class="stop-head"><label for="live" data-t="liveTo"></label><output id="liveOut" for="live"></output></div>
-      <input type="range" id="live" min="61" max="121" step="1" value="90">
-      <p class="compare-title" id="leftTitle"></p>
-      <div class="figs">
-        <p class="fig ck"><span data-t="keepPaying"></span><strong id="leftK"></strong></p>
-        <p class="fig cs"><span id="leftSLabel"></span><strong id="leftS"></strong></p>
-      </div>
-      <p class="ratio" id="leftNote"></p>
-    </div>
-    <div class="block" style="margin-top:22px">
-      <h2 id="h-retc"></h2>
-      <div class="chart"><canvas id="retChart" role="img"></canvas></div>
-      <p class="rneed" id="rNeed"></p>
-    </div>
   </section>
 
   <section class="part" id="s-mkt" aria-labelledby="h-mkt">
