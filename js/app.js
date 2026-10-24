@@ -1229,7 +1229,7 @@
     $('sIncome').closest('.field').querySelector('label').innerHTML = esc(t(p.two ? 'pay.l2' : 'pay.l1')) + '<span class="hint">' + esc(t('pay.h')) + '</span>';
     const homePay = raw.sHouse === 'mortgage' ? g('sHomePay') : null, carPay = raw.sCar === 'loan' ? g('sCarPay') : null;
     // the home and car loans are part of the debt repayments; if the total typed is smaller, use the two together
-    const I = g('pay'), S = g('sSpend'), DP = Math.max(g('sDebtPay') || 0, (homePay || 0) + (carPay || 0)), D = g('sDebt') || 0, M = g('sMortgage') || 0, rate = g('sRate') || 0, C = g('sCash') || 0;
+    const I = g('pay'), S = g('sSpend'), DP = Math.max(g('sDebtPay') || 0, (homePay || 0) + (carPay || 0)), M = g('sMortgage') || 0, CD = g('sCarDebt') || 0, D = Math.max(g('sDebt') || 0, M + CD), rate = g('sRate') || 0, C = g('sCash') || 0;
     const X = xTotal(p);
     const today = [];
     ITEMS = [];
@@ -1289,7 +1289,9 @@
     if (O <= 0){ today.push(setCheck('Other', 'good', t('m.exp.none'))); setCheck('Exp', 'na', '', false); }
     else {
       if (!I) miss('Other', t('m.na.pay'));
-      else { const n = O / I; today.push(setCheck('Other', n <= 3 ? 'good' : (n <= 12 ? 'ok' : 'bad'), t('m.other.t', {x: money(O), n: Math.round(n * 10) / 10}))); }
+      // the car loan has its own check (with the car), so judge the rest: cards and other loans
+      else if (CD > 0 && O - CD <= 0) today.push(setCheck('Other', 'good', t('m.other.carOnly', {c: money(CD)})));
+      else { const n = (O - CD) / I; today.push(setCheck('Other', n <= 3 ? 'good' : (n <= 12 ? 'ok' : 'bad'), CD > 0 ? t('m.other.tCar', {x: money(O), c: money(CD), n: Math.round(n * 10) / 10}) : t('m.other.t', {x: money(O), n: Math.round(n * 10) / 10}))); }
       today.push(setCheck('Exp', rate / 100 > p.growth ? 'bad' : 'good', t(rate / 100 > p.growth ? 'm.exp.bad' : 'm.exp.good', {r: pct(rate / 100), g: pct(p.growth)})));
     }
 
@@ -1332,7 +1334,11 @@
     if (car === 'loan'){
       if (carPay === null) miss('CarPay', t('m.car.na'));
       else if (!I) miss('CarPay', t('m.na.pay'));
-      else { const r = carPay / I, st = (r > 0.2 || (left !== null && left < 0 && r > 0.1)) ? 'bad' : (r > 0.1 ? 'ok' : 'good'); today.push(setCheck('CarPay', st, t('m.car.' + st, {p: pct(r)}))); }
+      else {
+        const r = carPay / I, st = (r > 0.2 || (left !== null && left < 0 && r > 0.1)) ? 'bad' : (r > 0.1 ? 'ok' : 'good');
+        // what's still owed, and roughly how long at this repayment (car loans here usually quote the balance with interest included)
+        today.push(setCheck('CarPay', st, join([t('m.car.' + st, {p: pct(r)}), CD > 0 && carPay > 0 ? t('m.car.left', {x: money(CD), n: Math.ceil(CD / carPay)}) : ''])));
+      }
     }
     // does the car fit the life? someone can own one they don't need, or need one they don't have
     const hasCar = car === 'own' || car === 'loan';

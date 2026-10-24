@@ -517,5 +517,9 @@ MMA.i18n.en = {
   'ck.carNeed.rethink.t': 'You’re planning to buy a car you don’t really need. Think twice: skipping it keeps the price, and years of running costs, in your pocket.',
   'ck.carNeed.family.t': 'Sharing a family car works while it lasts. If you’ll need your own one day, plan for it.',
   'ck.carNeed.fine.t': 'No car and no real need for one, so that money stays in your pocket.',
-  'good.HomePay': 'a home loan that fits your pay'
+  'good.HomePay': 'a home loan that fits your pay',
+  's.carDebt': 'Of which car loan',
+  'm.other.tCar': 'You owe {x} apart from your home, including {c} on your car. Leaving the car loan aside (it’s checked with your car below), the rest is about {n} months of take-home pay.',
+  'm.other.carOnly': 'Apart from your home, the only debt is your car loan of {c}, checked with your car below.',
+  'm.car.left': 'You still owe {x} on it: roughly {n} more months at this repayment.'
 };
