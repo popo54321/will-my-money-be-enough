@@ -45,14 +45,6 @@
     </div>
     <details class="more"><summary data-t="tip.more"></summary><p class="tip" data-t="tip"></p></details>
 
-    <details class="more"><summary data-t="lines.sum"></summary>
-    <p class="note" data-t="lines.note"></p>
-    <div class="grid">
-      <div class="field"><label for="s1" data-l="sc1" data-h="f.s1.h"></label><div class="box"><input id="s1" data-save inputmode="decimal" autocomplete="off"><span class="suf" data-t="ofGain"></span></div></div>
-      <div class="field"><label for="s2" data-l="sc2" data-h="f.s2.h"></label><div class="box"><input id="s2" data-save inputmode="decimal" autocomplete="off"><span class="suf" data-t="ofGain"></span></div></div>
-    </div>
-    </details>
-
     <details class="extras" id="extras">
       <summary><span data-t="ex.sum"></span><span class="excount" id="exCount"></span></summary>
       <p class="note" data-t="ex.note"></p>
@@ -82,7 +74,7 @@
     <h2 class="big" id="h-today" data-t="sm.today"></h2>
     <p class="intro" data-t="sm.today.intro"></p>
         <div class="grid four">
-      <div class="field"><label for="sIncome" data-l="pay.l1" data-h="optional"></label><div class="box"><input id="sIncome" data-money data-mirror="pay" inputmode="decimal" autocomplete="off" placeholder="–"></div></div>
+      <div class="field"><label for="sIncome" data-l="pay.l1" data-h="pay.h"></label><div class="box"><input id="sIncome" data-money data-mirror="pay" inputmode="decimal" autocomplete="off" placeholder="–"></div></div>
       <div class="field"><label for="sSpend" data-l="s.spend" data-h="s.spend.h"></label><div class="box"><input id="sSpend" data-save data-money inputmode="decimal" autocomplete="off" placeholder="–"></div></div>
       <div class="field"><label for="sDebtPay" data-l="s.debtPay" data-h="s.debtPay.h"></label><div class="box"><input id="sDebtPay" data-save data-money inputmode="decimal" autocomplete="off" data-ph="none"></div></div>
       <div class="field"><label for="sDebt" data-l="s.debt"></label><div class="box"><input id="sDebt" data-save data-money inputmode="decimal" autocomplete="off" data-ph="none"></div></div>
@@ -98,7 +90,10 @@
     <div class="grid ins">
       <div class="field" id="fdJob"><label for="sJob" data-l="ck.job"></label><div class="box"><select id="sJob" data-save><option value="" data-t="choose"></option><option value="steady" data-t="ck.job.steady"></option><option value="unsteady" data-t="ck.job.unsteady"></option><option value="no" data-t="ck.job.no"></option></select></div></div>
       <div class="field" id="fdHouse"><label for="sHouse" data-l="ck.house"></label><div class="box"><select id="sHouse" data-save><option value="" data-t="choose"></option><option value="own" data-t="ck.house.own"></option><option value="mortgage" data-t="ck.house.mortgage"></option><option value="rent" data-t="ck.house.rent"></option><option value="family" data-t="ck.house.family"></option></select></div></div>
+      <div class="field" id="fdHomePay"><label for="sHomePay" data-l="s.homePay" data-h="s.homePay.h"></label><div class="box"><input id="sHomePay" data-save data-money inputmode="decimal" autocomplete="off" placeholder="–"></div></div>
       <div class="field" id="fdCar"><label for="sCar" data-l="ck.car"></label><div class="box"><select id="sCar" data-save><option value="" data-t="choose"></option><option value="own" data-t="ck.car.own"></option><option value="loan" data-t="ck.car.loan"></option><option value="family" data-t="ck.car.family"></option><option value="plan" data-t="ck.car.plan"></option><option value="none" data-t="ck.car.none"></option></select></div></div>
+      <div class="field" id="fdCarPay"><label for="sCarPay" data-l="s.carPay" data-h="s.carPay.h"></label><div class="box"><input id="sCarPay" data-save data-money inputmode="decimal" autocomplete="off" placeholder="–"></div></div>
+      <div class="field" id="fdCarNeed"><label for="sCarNeed" data-l="ck.carNeed"></label><div class="box"><select id="sCarNeed" data-save><option value="" data-t="choose"></option><option value="yes" data-t="ck.carNeed.yes"></option><option value="some" data-t="ck.carNeed.some"></option><option value="no" data-t="ck.carNeed.no"></option></select></div></div>
       <div class="field" id="fdDeps"><label for="sDeps" data-l="ck.deps"></label><div class="box"><select id="sDeps" data-save><option value="" data-t="choose"></option><option value="yes" data-t="have"></option><option value="no" data-t="haveNot"></option></select></div></div>
       <div class="field" id="fdKids"><label for="sKids" data-l="ck.kids"></label><div class="box"><select id="sKids" data-save><option value="" data-t="choose"></option><option value="yes" data-t="have"></option><option value="plan" data-t="ck.kids.plan"></option><option value="no" data-t="haveNot"></option></select></div></div>
       <div class="field" id="fdSchool"><label for="sSchool" data-l="ck.school"></label><div class="box"><select id="sSchool" data-save><option value="" data-t="choose"></option><option value="no" data-t="ck.school.no"></option><option value="maybe" data-t="ck.school.maybe"></option><option value="yes" data-t="ck.school.yes"></option></select></div></div>
@@ -173,6 +168,13 @@
   <section class="verdict" id="s-scen" aria-live="polite">
     <h2 class="big" id="h-scen" data-t="scen.h"></h2>
     <p class="intro" data-t="scen.intro"></p>
+    <details class="more"><summary data-t="lines.sum"></summary>
+    <p class="note" data-t="lines.note"></p>
+    <div class="grid">
+      <div class="field"><label for="s1" data-l="sc1" data-h="f.s1.h"></label><div class="box"><input id="s1" data-save inputmode="decimal" autocomplete="off"><span class="suf" data-t="ofGain"></span></div></div>
+      <div class="field"><label for="s2" data-l="sc2" data-h="f.s2.h"></label><div class="box"><input id="s2" data-save inputmode="decimal" autocomplete="off"><span class="suf" data-t="ofGain"></span></div></div>
+    </div>
+    </details>
     <p class="lead" id="lead"></p>
     <p class="today" id="unitNote"></p>
     <div class="row c1"><span class="tag">1</span><div>
@@ -418,7 +420,10 @@
       <div class="checks">
         <div class="check" id="rwJob"><span class="pill" id="ptJob"></span><div><p class="q" data-t="ck.job"></p><p class="ans" id="avJob"></p><p class="a" id="atJob"></p></div></div>
         <div class="check" id="rwHouse"><span class="pill" id="ptHouse"></span><div><p class="q" data-t="ck.house"></p><p class="ans" id="avHouse"></p><p class="a" id="atHouse"></p></div></div>
+        <div class="check" id="rwHomePay"><span class="pill" id="ptHomePay"></span><div><p class="q" data-t="m.home.q"></p><p class="a" id="atHomePay"></p></div></div>
         <div class="check" id="rwCar"><span class="pill" id="ptCar"></span><div><p class="q" data-t="ck.car"></p><p class="ans" id="avCar"></p><p class="a" id="atCar"></p></div></div>
+        <div class="check" id="rwCarPay"><span class="pill" id="ptCarPay"></span><div><p class="q" data-t="m.car.q"></p><p class="a" id="atCarPay"></p></div></div>
+        <div class="check" id="rwCarNeed"><span class="pill" id="ptCarNeed"></span><div><p class="q" data-t="ck.carNeed"></p><p class="ans" id="avCarNeed"></p><p class="a" id="atCarNeed"></p></div></div>
         <div class="check" id="rwDeps"><span class="pill" id="ptDeps"></span><div><p class="q" data-t="ck.deps"></p><p class="ans" id="avDeps"></p><p class="a" id="atDeps"></p></div></div>
         <div class="check" id="rwKids"><span class="pill" id="ptKids"></span><div><p class="q" data-t="ck.kids"></p><p class="ans" id="avKids"></p><p class="a" id="atKids"></p></div></div>
         <div class="check" id="rwSchool"><span class="pill" id="ptSchool"></span><div><p class="q" data-t="ck.school"></p><p class="ans" id="avSchool"></p><p class="a" id="atSchool"></p></div></div>

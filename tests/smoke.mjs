@@ -47,7 +47,7 @@ const checkText = async label => {
 // no adventurer until every question is answered, and follow-ups wait for their question
 if (await rpgName() !== await page.evaluate(() => MMA.i18n.en['adv.unknown'])) fail('an adventurer was given before every question was answered');
 if (!(await page.evaluate(() => document.getElementById('fdBigPay').classList.contains('locked')))) fail('the follow-up to big spending is not greyed out');
-const answers = {sJob: 'steady', sCar: 'none', sDeps: 'no', sKids: 'no', sBig: 'no', sWill: 'yes', sHealth: 'yes', sHomeIns: 'contents', sIncomeIns: 'yes', sCritical: 'yes', sAccident: 'yes'};
+const answers = {sJob: 'steady', sCar: 'none', sCarNeed: 'no', sDeps: 'no', sKids: 'no', sBig: 'no', sWill: 'yes', sHealth: 'yes', sHomeIns: 'contents', sIncomeIns: 'yes', sCritical: 'yes', sAccident: 'yes'};
 for (const [id, v] of Object.entries(answers)) await page.selectOption('#' + id, v);
 await page.waitForTimeout(3000);
 if (await rpgName() === await page.evaluate(() => MMA.i18n.en['adv.unknown'])) fail('no adventurer after every question was answered');

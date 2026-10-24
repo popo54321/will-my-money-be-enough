@@ -299,3 +299,4 @@ h2.big::before{content:"";flex:none;width:14px;height:14px;border-radius:50% 0 5
 .startbox a{color:var(--ink);}
 .gobtns{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;}
 .btn2.bigalt{font-size:1.05rem;font-weight:800;padding:12px 24px;border-radius:24px;}
+.verdict .more{margin:12px 0 18px;}

@@ -608,7 +608,7 @@
     const q = R.q;
     if (xTotal(p) <= 0) return setRow('3', '–', '', t('nothingIn'));
     if (R.m1 === null) return setRow('3', '–', '', t('s3.na'));
-    if (R.m1 > q.H && hasRetirementGoal(p) && !p.noRetire && !ok(q, R.keep, R.nL)) return setRow('3', '–', '', t('scen.afterOut'));
+    if ((R.m1 > q.H || (R.m3 !== null && R.m3 > q.H)) && hasRetirementGoal(p) && !p.noRetire && !ok(q, R.keep, R.nL)) return setRow('3', '–', '', t('scen.afterOut'));
     if (R.m3 === null) return setRow('3', t('no2'), '', t('s3.no100'));
     const parts = [];
     if (R.m3 === R.m1) parts.push(t('s3.straight'));
@@ -873,7 +873,7 @@
     $('decShort').textContent = short ? t(short) : ''; $('decShort').hidden = !short;
     $('decBody').hidden = $('dIntro').hidden = !!short;
     $('qB').textContent = t('q.b', {a: pct(p.growth - 0.02), c: pct(p.growth)});
-    $('payLbl').innerHTML = esc(t(p.two ? 'pay.l2' : 'pay.l1')) + '<span class="hint">' + esc(t('optional')) + '</span>';
+    $('payLbl').innerHTML = esc(t(p.two ? 'pay.l2' : 'pay.l1')) + '<span class="hint">' + esc(t('pay.h')) + '</span>';
     const applies = x > 0 && R.m1 !== null, m1 = R.m1;
     const D1 = applies ? R.keep.pot[H] - R.s3Ret.pot[H] : 0;
     const keep = [['k1b', t('k1', {g: pct(p.growth)})], ['k2b', applies && m1 < H ? t('k2a', {x: mon(p, D1, H), r: p.retire}) : t('k2n')], ['k3b', t('k3')], ['k4b', t('k4')], ['k5b', t('k5')]];
@@ -1226,8 +1226,10 @@
     const g = (k) => { const s = String(raw[k] || '').replace(/[^0-9.\-]/g, ''); if (s === '' || s === '-' || s === '.') return null; const v = parseFloat(s); return isFinite(v) ? v : null; };
     const sInc = $('sIncome');
     if (document.activeElement !== sInc) sInc.value = $('pay').value;
-    $('sIncome').closest('.field').querySelector('label').innerHTML = esc(t(p.two ? 'pay.l2' : 'pay.l1')) + '<span class="hint">' + esc(t('optional')) + '</span>';
-    const I = g('pay'), S = g('sSpend'), DP = g('sDebtPay') || 0, D = g('sDebt') || 0, M = g('sMortgage') || 0, rate = g('sRate') || 0, C = g('sCash') || 0;
+    $('sIncome').closest('.field').querySelector('label').innerHTML = esc(t(p.two ? 'pay.l2' : 'pay.l1')) + '<span class="hint">' + esc(t('pay.h')) + '</span>';
+    const homePay = raw.sHouse === 'mortgage' ? g('sHomePay') : null, carPay = raw.sCar === 'loan' ? g('sCarPay') : null;
+    // the home and car loans are part of the debt repayments; if the total typed is smaller, use the two together
+    const I = g('pay'), S = g('sSpend'), DP = Math.max(g('sDebtPay') || 0, (homePay || 0) + (carPay || 0)), D = g('sDebt') || 0, M = g('sMortgage') || 0, rate = g('sRate') || 0, C = g('sCash') || 0;
     const X = xTotal(p);
     const today = [];
     ITEMS = [];
@@ -1308,7 +1310,7 @@
     }
 
     // ---- life checklist ----
-    const SEL = {Job: 'sJob', House: 'sHouse', Car: 'sCar', Deps: 'sDeps', Kids: 'sKids', School: 'sSchool', KidCost: 'sKidCost', Big: 'sBig', BigPay: 'sBigPay', Will: 'sWill', Health: 'sHealth', Life: 'sLife', HomeIns: 'sHomeIns', CarIns: 'sCarIns', Income: 'sIncomeIns', Critical: 'sCritical', Accident: 'sAccident'};
+    const SEL = {Job: 'sJob', House: 'sHouse', Car: 'sCar', CarNeed: 'sCarNeed', Deps: 'sDeps', Kids: 'sKids', School: 'sSchool', KidCost: 'sKidCost', Big: 'sBig', BigPay: 'sBigPay', Will: 'sWill', Health: 'sHealth', Life: 'sLife', HomeIns: 'sHomeIns', CarIns: 'sCarIns', Income: 'sIncomeIns', Critical: 'sCritical', Accident: 'sAccident'};
     const ck = (key, val, map, txt) => {
       const el = $(SEL[key]), opt = el && el.selectedIndex > 0 ? el.options[el.selectedIndex] : null;
       $('av' + key).textContent = opt ? opt.textContent : '';
@@ -1319,6 +1321,24 @@
     ck('Job', raw.sJob || '', {steady: 'good', unsteady: 'ok', no: 'bad'});
     ck('House', house, {own: 'good', mortgage: 'ok', rent: 'ok', family: 'ok'});
     ck('Car', car, {own: 'good', loan: 'ok', family: 'ok', plan: 'ok', none: 'good'});
+    // home and car loans as a share of take-home pay: the basis for keep, refinance, or sell and rent
+    $('fdHomePay').hidden = $('rwHomePay').hidden = house !== 'mortgage';
+    if (house === 'mortgage'){
+      if (homePay === null) miss('HomePay', t('m.home.na'));
+      else if (!I) miss('HomePay', t('m.na.pay'));
+      else { const r = homePay / I, st = (r > 0.4 || (left !== null && left < 0 && r > 0.3)) ? 'bad' : (r > 0.3 ? 'ok' : 'good'); today.push(setCheck('HomePay', st, t('m.home.' + st, {p: pct(r)}))); }
+    }
+    $('fdCarPay').hidden = $('rwCarPay').hidden = car !== 'loan';
+    if (car === 'loan'){
+      if (carPay === null) miss('CarPay', t('m.car.na'));
+      else if (!I) miss('CarPay', t('m.na.pay'));
+      else { const r = carPay / I, st = (r > 0.2 || (left !== null && left < 0 && r > 0.1)) ? 'bad' : (r > 0.1 ? 'ok' : 'good'); today.push(setCheck('CarPay', st, t('m.car.' + st, {p: pct(r)}))); }
+    }
+    // does the car fit the life? someone can own one they don't need, or need one they don't have
+    const hasCar = car === 'own' || car === 'loan';
+    const needMap = hasCar ? {yes: 'good', some: 'ok', no: car === 'loan' ? 'bad' : 'ok'} : (car === 'plan' ? {yes: 'good', some: 'ok', no: 'ok'} : {yes: 'ok', some: 'good', no: 'good'});
+    ck('CarNeed', raw.sCarNeed || '', needMap, v => hasCar ? (v === 'yes' ? 'ck.carNeed.keep.t' : (v === 'some' ? 'ck.carNeed.some.t' : 'ck.carNeed.sell.t'))
+      : (car === 'plan' ? (v === 'yes' ? 'ck.carNeed.buy.t' : 'ck.carNeed.rethink.t') : (v !== 'yes' ? 'ck.carNeed.fine.t' : (car === 'family' ? 'ck.carNeed.family.t' : 'ck.carNeed.buy.t'))));
     ck('Deps', raw.sDeps || '', {yes: 'na', no: 'good'});
     const kids = raw.sKids || '', hasKids = kids === 'yes' || kids === 'plan';
     ck('Kids', kids, {yes: 'na', plan: 'na', no: 'na'});
@@ -1351,7 +1371,7 @@
     ck('Critical', raw.sCritical || '', {yes: 'good', no: 'ok'});
     ck('Accident', raw.sAccident || '', {yes: 'good', no: 'ok'});
     // a follow-up question waits, greyed out, until the question it follows is answered
-    [['fdSchool', 'sKids'], ['fdKidCost', 'sKids'], ['fdBigPay', 'sBig'], ['fdLife', 'sDeps'], ['fdHomeIns', 'sHouse'], ['fdCarIns', 'sCar']].forEach(([fd, parent]) => {
+    [['fdSchool', 'sKids'], ['fdKidCost', 'sKids'], ['fdBigPay', 'sBig'], ['fdLife', 'sDeps'], ['fdHomeIns', 'sHouse'], ['fdCarIns', 'sCar'], ['fdCarNeed', 'sCar']].forEach(([fd, parent]) => {
       const f = $(fd), locked = !raw[parent];
       let hint = f.querySelector('.lock');
       if (!hint){ hint = document.createElement('p'); hint.className = 'lock'; f.appendChild(hint); }
@@ -1412,13 +1432,13 @@
     $('rpgNextNote').textContent = next;
     $('rpgCheerNote').textContent = cheer;
     // what's already going well, before the problems (only when there are problems to balance)
-    const GOOD = ['Job', 'Left', 'Cash', 'Exp', 'Debt', 'Rate', 'Fit', 'Health', 'Life', 'Other', 'Will'];
+    const GOOD = ['Job', 'Left', 'Cash', 'Exp', 'Debt', 'HomePay', 'Rate', 'Fit', 'Health', 'Life', 'Other', 'Will'];
     const st = k => { const it = ITEMS.find(i => i.key === k); return it ? it.st : null; };
     const goods = GOOD.filter(k => st(k) === 'good').slice(0, 2).map(k => t('good.' + k));
     const hasProblems = ITEMS.some(i => i.st === 'ok' || i.st === 'bad');
     $('rpgGood').textContent = goods.length && hasProblems ? t('good.t', {items: goods.join(t('good.and'))}) : '';
     // when several things need attention, point at the few that matter most
-    const PRIO = ['Left', 'Cash', 'Exp', 'Job', 'KidCost', 'Health', 'Life', 'Fit', 'Other', 'Debt', 'Rate', 'BigPay', 'School', 'HomeIns', 'Income', 'CarIns', 'Will', 'Critical', 'Accident', 'House', 'Car', 'Sp'];
+    const PRIO = ['Left', 'Cash', 'Exp', 'Job', 'HomePay', 'CarPay', 'KidCost', 'Health', 'Life', 'Fit', 'CarNeed', 'Other', 'Debt', 'Rate', 'BigPay', 'School', 'HomeIns', 'Income', 'CarIns', 'Will', 'Critical', 'Accident', 'House', 'Car', 'Sp'];
     const bads = PRIO.filter(k => st(k) === 'bad').slice(0, 3);
     $('startHere').hidden = bads.length < 2;
     $('startList').innerHTML = bads.map(k => { const row = $('rw' + k); return '<li><a href="#rw' + k + '">' + esc(row ? row.querySelector('.q').textContent : k) + '</a></li>'; }).join('');
