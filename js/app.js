@@ -60,7 +60,8 @@
     $('partner').innerHTML = fld('pAge', 'x.pAge', '', {int: true}) + fld('pRetire', 'x.pRetire', '', {int: true}) +
       fld('pStart', 'x.pStart', '', {money: true, phRaw: '0'}) + fld('pMonthly', 'x.pMonthly', '', {money: true, phRaw: '0'}) +
       '<label class="tog" style="grid-column:1/-1;margin:0"><input type="checkbox" id="pSame" data-save> <span data-t="x.same"></span></label>' +
-      fld('pGrowth', 'x.pGrowth', 'f.beforeInfl', {suf: '%', cls: 'pgrow'}) + fld('pGrowth2', 'x.pGrowth2', 'f.beforeInfl', {suf: '%', cls: 'pgrow'}) +
+      fld('pGrowth', 'x.pGrowth', 'f.beforeInfl', {suf: '%', cls: 'pgrow', ph: 'x.asYours'}) + fld('pGrowth2', 'x.pGrowth2', 'f.beforeInfl', {suf: '%', cls: 'pgrow', ph: 'x.asYours'}) +
+      fld('pVol1', 'x.pVol1', '', {suf: '%', cls: 'pgrow', ph: 'x.asYours'}) + fld('pVol2', 'x.pVol2', '', {suf: '%', cls: 'pgrow', ph: 'x.asYours'}) +
       '<p class="note" id="blendNote" style="grid-column:1/-1;margin:-6px 0 0"></p>';
   }
   /* ---------- other income and one-off rows: add or remove as many as needed ---------- */
@@ -137,7 +138,7 @@
       if (el.tagName === 'SELECT' && el.selectedIndex < 0) el.selectedIndex = 0;
     });
     // saves from before the tick box: partner rates already typed in mean they weren't the same
-    if (raw && raw.pSame === undefined && (raw.pGrowth || raw.pGrowth2)) $('pSame').checked = false;
+    if (raw && raw.pSame === undefined && (raw.pGrowth || raw.pGrowth2 || raw.pVol1 || raw.pVol2)) $('pSame').checked = false;
     $('nInc').value = nInc; $('nOne').value = nOne;
   }
 
@@ -181,7 +182,7 @@
     const noRetire = !!raw.noRetire;
     const retireIn = noRetire ? Math.round(clamp(Math.min(live || 100, 106) - 1, age + 1, 105)) : Math.round(clamp(g('retire', 60), 1, 105));
     const badRetire = retireIn <= age;
-    const years = badRetire ? 1 : Math.min(retireIn - age, 80);
+    const years = badRetire ? 1 : retireIn - age;
     const retire = age + years;
     const two = !!raw.two;
     const pAge = two ? Math.round(clamp(g('pAge', age), 0, 100)) : age;
@@ -215,6 +216,7 @@
       two, pAge, pRetire, badPartner, pStart: two ? Math.max(0, g('pStart', 0)) : 0, pX: two ? Math.max(0, g('pMonthly', 0)) : 0,
       // the partner's own growth rates count only once “Same growth as yours” is unticked
       pGrowth: two && !raw.pSame && has('pGrowth') ? clamp(g('pGrowth', 0), -20, 40) / 100 : null, pGrowthR: two && !raw.pSame && has('pGrowth2') ? clamp(g('pGrowth2', 0), -20, 40) / 100 : null,
+      pVol1: two && !raw.pSame && has('pVol1') ? clamp(g('pVol1', 15), 0, 60) / 100 : null, pVol2: two && !raw.pSame && has('pVol2') ? clamp(g('pVol2', 10), 0, 60) / 100 : null,
       yld: clamp(g('yield', 0), 0, 30) / 100, vol1: clamp(g('vol1', 15), 0, 60) / 100, vol2: clamp(g('vol2', 10), 0, 60) / 100,
       fall: clamp(g('fall', 30), 0, 95) / 100, pay: Math.max(0, g('pay', 0))
     });
@@ -224,9 +226,11 @@
   // money at their own rate (steady growth); after it, the two rates weighted by what each person has by then.
   function blendGrowth(p){
     p.blend = false;
-    if (!p.two || (p.pGrowth === null && p.pGrowthR === null)) return p;
+    p.ownGrowth = p.growth; p.ownGrowthR = p.growthR; p.ownVol1 = p.vol1; p.ownVol2 = p.vol2;
+    if (!p.two) return p;
     const gP = p.pGrowth === null ? p.growth : p.pGrowth, gPR = p.pGrowthR === null ? p.growthR : p.pGrowthR;
-    if (gP === p.growth && gPR === p.growthR) return p;
+    const vP1 = p.pVol1 === null ? p.vol1 : p.pVol1, vP2 = p.pVol2 === null ? p.vol2 : p.pVol2;
+    if (gP === p.growth && gPR === p.growthR && vP1 === p.vol1 && vP2 === p.vol2) return p;
     const H = p.years * 12, H2 = Math.max(0, (p.pRetire - p.pAge) * 12);
     const mr = gr => Math.pow((1 + gr) * (1 - p.fees) / (1 + p.infl), 1 / 12) - 1;
     const u = m => Math.pow(1 + p.raise, Math.floor(m / 12)) / Math.pow(1 + p.infl, (m + 1) / 12);
@@ -240,9 +244,10 @@
       rA = (lo + hi) / 2;
     } else rA = mr((p.growth + gP) / 2);
     const w = you + them > 0 ? them / (you + them) : 0.5;
-    p.ownGrowth = p.growth; p.ownGrowthR = p.growthR;
     p.growth = Math.pow(1 + rA, 12) * (1 + p.infl) / (1 - p.fees) - 1;
     p.growthR = (1 - w) * p.growthR + w * gPR;
+    // ups and downs: weighted the same way (as if both pots rise and fall together, the cautious reading)
+    p.vol1 = (1 - w) * p.vol1 + w * vP1; p.vol2 = (1 - w) * p.vol2 + w * vP2;
     p.blend = true;
     return p;
   }
@@ -997,6 +1002,7 @@
       if (!need.length) need.push(t('adv.wait'));
       $('rpgDesc').textContent = join(need);
       $('rpgQuests').innerHTML = '';
+      $('rpgNextH').hidden = true;
     } else {
       const rk = RANKS[n];
       icon.innerHTML = ICONS[rk.k]; icon.style.setProperty('--tierbg', tierBg(n));
@@ -1047,6 +1053,7 @@
       }
       // when money today is in crisis or struggling, sort today out first, as the rank description says
       if (hl !== null && hl <= 2 && quests.length === 2 && quests[1].label === t('quest.health')) quests.reverse();
+      $('rpgNextH').hidden = false;
       $('rpgQuests').innerHTML = quests.map(qq => '<div class="quest"><div class="qicon" style="background:' + (qq.to ? tierBg(RANKS.indexOf(qq.to)) : (qq.god ? GOD_BG : '#F6E6B4')) + '">' +
         (qq.to ? ICONS[qq.to.k] : (qq.god ? ICONS.god : ICONS.emperor)) + '</div><div><p class="qt">' + esc(qq.label) + '</p>' +
         (qq.to ? '<p class="qn">' + esc(t('quest.to', {name: t('rk.' + qq.to.k)})) + '</p>' : '') + '<p class="qa">' + esc(qq.text) + '</p></div></div>').join('');
@@ -1109,6 +1116,11 @@
   // and the Web Share API is blocked by the frame. Hosted on its own (GitHub Pages, Netlify...),
   // a normal download link and navigator.share both work.
   const IN_CLAUDE = !!(window.claude && typeof window.claude.use === 'function');
+  // hosted on its own, the page can be added to the home screen and works offline (see sw.js)
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !IN_CLAUDE){
+    const reg = () => navigator.serviceWorker.register('sw.js').catch(() => {});
+    if (document.readyState === 'complete') reg(); else window.addEventListener('load', reg);
+  }
   // imgCache follows the tick box (Save as image); imgSafe is short and never shows money amounts (Share and the social buttons)
   let imgCache = null, imgSafe = null, imgTimer = null;
   // navigator.share needs a fresh tap, so the images are built ahead of time while the Summary is open.
@@ -1604,7 +1616,9 @@
     unitCash = ui.unit === 'cash';
     $('partner').hidden = !p.two;
     document.querySelectorAll('.pgrow').forEach(el => el.hidden = !!raw.pSame);
-    $('blendNote').textContent = p.blend && (Math.abs(p.growth - p.ownGrowth) > 5e-4 || Math.abs(p.growthR - p.ownGrowthR) > 5e-4) ? t('x.blend', {a: pct(p.growth), b: pct(p.growthR)}) : '';
+    const bg = p.blend && (Math.abs(p.growth - p.ownGrowth) > 5e-4 || Math.abs(p.growthR - p.ownGrowthR) > 5e-4);
+    const bv = p.blend && (Math.abs(p.vol1 - p.ownVol1) > 5e-4 || Math.abs(p.vol2 - p.ownVol2) > 5e-4);
+    $('blendNote').textContent = join([bg ? t('x.blend', {a: pct(p.growth), b: pct(p.growthR)}) : '', bv ? t('x.blendVol', {a: pct(p.vol1), b: pct(p.vol2)}) : '']);
     document.querySelectorAll('.whose').forEach(el => el.hidden = !p.two);
     const n = extrasCount(p);
     $('exCount').textContent = n ? t('ex.count', {n}) : '';

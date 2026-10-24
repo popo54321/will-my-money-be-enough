@@ -21,6 +21,19 @@ await page.waitForTimeout(4000);
 
 let problems = 0;
 const fail = msg => { problems++; console.error('✗ ' + msg); };
+
+// defaults and the three-tab journey
+if (await page.evaluate(() => document.getElementById('live').value) !== '100') fail('the live-to slider should start at 100');
+{
+  const [stop, max, coast] = await page.evaluate(() => [+document.getElementById('stop').value, +document.getElementById('stop').max, document.getElementById('fC').textContent]);
+  const never = coast === await page.evaluate(() => MMA.i18n.en.notReached);
+  if (never ? stop !== max : stop > max) fail(`the stop slider should start at the safe age, or at retirement when there isn't one (got ${stop} of ${max}, Enough: ${coast})`);
+}
+await page.click('#goDet');
+if (!(await page.evaluate(() => !document.getElementById('pageDet').hidden))) fail('“See the details” did not open the Details tab');
+await page.click('#goSum2');
+if (!(await page.evaluate(() => !document.getElementById('pageSum').hidden))) fail('the button at the end of the Details tab did not open the Result tab');
+await page.click('#tabCalc');
 const rpgName = () => page.evaluate(() => document.getElementById('rpgName').textContent);
 const setLive = v => page.evaluate(v => { const l = document.getElementById('live'); l.value = v; l.dispatchEvent(new Event('input', {bubbles: true})); }, v);
 const checkText = async label => {

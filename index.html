@@ -9,6 +9,10 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Noto+Sans+Thai:wght@400;600;700;800&family=Noto+Sans+SC:wght@400;600;700;800&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
 <link rel="stylesheet" href="css/styles.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#FBF6EA">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 </head>
 <body>
 <main>
@@ -364,7 +368,7 @@
         <div class="ladder hl"><p><span data-t="adv.health"></span><strong id="rpgHealthName"></strong></p><div class="steps" id="rpgHealthSteps"></div></div>
       </div>
       <p class="lifenote" id="rpgLifeNote"></p><p class="nextnote privrow" id="rpgNextNote"></p><p class="cheernote privrow" id="rpgCheerNote"></p><p class="goodnote" id="rpgGood"></p>
-      <h3 data-t="adv.next"></h3>
+      <h3 id="rpgNextH" data-t="adv.next"></h3>
       <div class="quests" id="rpgQuests"></div>
       <details class="allranks"><summary data-t="adv.all"></summary><p class="note" style="margin:10px 0 0" data-t="adv.tap"></p><div class="rankinfo" id="rankInfo" aria-live="polite" hidden></div><div class="rankgrid" id="rankGrid"></div></details>
     </section>

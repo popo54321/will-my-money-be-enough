@@ -17,7 +17,7 @@ A static, no-build web app: "Will My Money Be Enough?", a gamified retirement an
   - `makeModel()` and `run()`: the month-by-month model in today's prices.
   - `compute()` and `computeMore()`: deterministic results.
   - `foreverOut()`: the long-run maths for "Keep going forever" (live-to value `FOREVER`, 121): after `FH` months past retirement the pot follows P → P(1+r) − w, so it either never runs out or runs out at a month worked out exactly.
-  - `monteCarlo()`: 1,000 seeded random market histories.
+  - `monteCarlo()`: 1,000 seeded random possible futures for the markets.
   - `godTest()`: the God Emperor check, 5× spending, pot never shrinks after retirement.
   - `payFor()` and `payToLast()`: searches for the monthly amount needed.
   - `render*()`: one function per section.
@@ -47,4 +47,6 @@ A static, no-build web app: "Will My Money Be Enough?", a gamified retirement an
 - **Inside claude.ai:** `window.claude.use('downloads')` provides saving, and `navigator.share` is blocked. Standalone, `saveBlob()` uses a normal download link and Share uses `navigator.share`. `IN_CLAUDE` switches between the two.
 - **Sharing needs a fresh tap:** `navigator.share` must be called directly from the tap, before any `await`. That's why `scheduleImage()` pre-builds the PNG. Shared images are always the short, money-free one (`buildImage(true, true)`); the short image leaves out the Your future table.
 - **Market test growth:** `monteCarlo()` reads the growth rate as the typical compound yearly growth (draws centred v²/2 higher), so average years end close to steady growth. Don't undo that without changing `m.p8`.
+- **Installable app:** `manifest.webmanifest`, `sw.js` and `icons/` make the hosted page installable and offline-capable. `sw.js` is network first; add any new file the page loads to `CORE` there and bump `VERSION` when that list changes. It registers only over http(s) and never inside claude.ai.
+- **Two people:** `blendGrowth()` in `parse()` folds the partner's growth and ups and downs (only when “Same growth as yours”, `pSame`, is unticked) into one growth rate and one volatility per phase, so the rest of the model stays single-pot.
 - **Market test speed:** the market test and the `payFor()` searches are the slow parts. Keep them in the delayed job in `render()`, never in the instant part.
