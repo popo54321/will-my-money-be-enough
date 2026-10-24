@@ -18,10 +18,10 @@
     <p class="sub" data-t="sub"></p>
     <p class="heads" data-t="heads"></p>
   </header>
-  <div class="tabs" role="tablist"><button type="button" role="tab" id="tabCalc" data-tab="calc" aria-selected="true" data-t="tab.calc"></button><button type="button" role="tab" id="tabSum" data-tab="sum" aria-selected="false" data-t="tab.sum"></button></div>
+  <div class="tabs" role="tablist"><button type="button" role="tab" id="tabCalc" data-tab="calc" aria-selected="true" data-t="tab.calc"></button><button type="button" role="tab" id="tabDet" data-tab="det" aria-selected="false" data-t="tab.det"></button><button type="button" role="tab" id="tabSum" data-tab="sum" aria-selected="false" data-t="tab.sum"></button></div>
   <div id="pageCalc">
       <nav class="toc" id="toc">
-        <a href="#s-today" data-t="sm.today"></a><a href="#s-life" data-t="sm.check.h"></a><a href="#s-ins" data-t="sm.ins.h"></a><a href="#s-ret" data-t="toc.ret"></a><a href="#s-scen" data-t="toc.scen"></a><a href="#s-mkt" data-t="toc.mkt"></a><a href="#s-ages" data-t="toc.ages"></a><a href="#s-pay" data-t="toc.pay"></a><a href="#s-decide" data-t="toc.decide"></a><a href="#s-plans" data-t="toc.plans"></a>
+        <a href="#s-today" data-t="sm.today"></a><a href="#s-life" data-t="sm.check.h"></a><a href="#s-ins" data-t="sm.ins.h"></a>
       </nav>
 
   <section class="panel" aria-labelledby="h-inputs">
@@ -117,9 +117,16 @@
       <div class="field" id="fdCritical"><label for="sCritical" data-l="ck.critical"></label><div class="box"><select id="sCritical" data-save><option value="" data-t="choose"></option><option value="yes" data-t="have"></option><option value="no" data-t="haveNot"></option></select></div></div>
       <div class="field" id="fdAccident"><label for="sAccident" data-l="ck.accident"></label><div class="box"><select id="sAccident" data-save><option value="" data-t="choose"></option><option value="yes" data-t="have"></option><option value="no" data-t="haveNot"></option></select></div></div>
     </div>
-    <button class="btn2 big" id="goSum" type="button" style="margin-top:16px" data-t="sm.goSum"></button>
-    <p class="note" style="margin-top:14px" data-t="calc.detail"></p>
+    <div class="gobtns"><button class="btn2 big" id="goSum" type="button" data-t="sm.goSum"></button><button class="btn2 bigalt" id="goDet" type="button" data-t="sm.goDet"></button></div>
+    <p class="note" style="margin-top:10px" data-t="calc.detail"></p>
   </section>
+
+  </div>
+
+  <div id="pageDet" hidden>
+      <nav class="toc" id="tocDet">
+        <a href="#s-ret" data-t="toc.ret"></a><a href="#s-scen" data-t="toc.scen"></a><a href="#s-mkt" data-t="toc.mkt"></a><a href="#s-ages" data-t="toc.ages"></a><a href="#s-pay" data-t="toc.pay"></a><a href="#s-decide" data-t="toc.decide"></a><a href="#s-plans" data-t="toc.plans"></a>
+      </nav>
 
   <section class="part" id="s-ret" aria-labelledby="h-ret">
     <h2 class="big" id="h-ret" data-t="toc.ret"></h2>
@@ -342,6 +349,10 @@
     <p data-t="m.p10"></p>
     <p data-t="m.p11"></p>
   </details>
+  <section class="part">
+    <p class="intro" data-t="det.end"></p>
+    <button class="btn2 big" id="goSum2" type="button" data-t="sm.goSum"></button>
+  </section>
   </div>
 
   <div id="pageSum" hidden>

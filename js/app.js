@@ -143,7 +143,7 @@
 
   /* ---------- UI state ---------- */
   const navLang = (navigator.language || 'en').toLowerCase();
-  const ui = {unit: 'cash', unitSet: false, touched: false, stopAge: null, live: 90, answers: {match: null, cash: null, debt: null, life: null},
+  const ui = {unit: 'cash', unitSet: false, touched: false, stopAge: null, live: 100, liveSet: false, answers: {match: null, cash: null, debt: null, life: null},
     look: 'cream', tab: 'calc', hideAmts: false,
     lang: navLang.startsWith('th') ? 'th' : (navLang.startsWith('zh') ? 'zh' : 'en')};
   function loadAll(){
@@ -157,10 +157,11 @@
       if (saved.ui.unitSet && (saved.ui.unit === 'real' || saved.ui.unit === 'cash')){ ui.unit = saved.ui.unit; ui.unitSet = true; }
       if (saved.ui.lang && I18N[saved.ui.lang]) ui.lang = saved.ui.lang;
       if (saved.ui.look === 'night') ui.look = 'night';
-      if (saved.ui.tab === 'sum') ui.tab = 'sum';
+      if (saved.ui.tab === 'sum' || saved.ui.tab === 'det') ui.tab = saved.ui.tab;
       if (saved.ui.hideAmts === true) ui.hideAmts = true;
       if (saved.ui.touched && typeof saved.ui.stopAge === 'number'){ ui.touched = true; ui.stopAge = saved.ui.stopAge; }
-      if (typeof saved.ui.live === 'number') ui.live = saved.ui.live;
+      // the default live-to age moved from 90 to 100; keep a saved age only if the person moved the slider (or it isn't the old default)
+      if (typeof saved.ui.live === 'number' && (saved.ui.liveSet || saved.ui.live !== 90)){ ui.live = saved.ui.live; ui.liveSet = !!saved.ui.liveSet; }
       if (saved.ui.answers) ['match', 'cash', 'debt', 'life'].forEach(k => { const v = saved.ui.answers[k]; if (v === 'yes' || v === 'no') ui.answers[k] = v; });
     }
   }
@@ -178,7 +179,7 @@
     const age = Math.round(clamp(g('age', 30), 0, 100));
     // never retiring: work and invest to the year before the live-to age (105 at most, for forever)
     const noRetire = !!raw.noRetire;
-    const retireIn = noRetire ? Math.round(clamp(Math.min(live || 90, 106) - 1, age + 1, 105)) : Math.round(clamp(g('retire', 60), 1, 105));
+    const retireIn = noRetire ? Math.round(clamp(Math.min(live || 100, 106) - 1, age + 1, 105)) : Math.round(clamp(g('retire', 60), 1, 105));
     const badRetire = retireIn <= age;
     const years = badRetire ? 1 : Math.min(retireIn - age, 80);
     const retire = age + years;
@@ -1410,13 +1411,14 @@
     $('startHere').hidden = bads.length < 2;
     $('startList').innerHTML = bads.map(k => { const row = $('rw' + k); return '<li><a href="#rw' + k + '">' + esc(row ? row.querySelector('.q').textContent : k) + '</a></li>'; }).join('');
   }
+  // three tabs: the Calculator (every question), the Details (the maths after retirement) and the Result
   const applyTab = () => {
-    $('pageCalc').hidden = ui.tab !== 'calc'; $('pageSum').hidden = ui.tab !== 'sum';
-    $('tabCalc').setAttribute('aria-selected', String(ui.tab === 'calc')); $('tabSum').setAttribute('aria-selected', String(ui.tab === 'sum'));
+    $('pageCalc').hidden = ui.tab !== 'calc'; $('pageDet').hidden = ui.tab !== 'det'; $('pageSum').hidden = ui.tab !== 'sum';
+    $('tabCalc').setAttribute('aria-selected', String(ui.tab === 'calc')); $('tabDet').setAttribute('aria-selected', String(ui.tab === 'det')); $('tabSum').setAttribute('aria-selected', String(ui.tab === 'sum'));
   };
   function showTab(tab){
     ui.tab = tab; applyTab(); saveAll(); scheduleImage();
-    if (tab === 'calc') [potChart, shareChart, retChart, mcChart].forEach(c => c && c.resize());
+    if (tab === 'det') [potChart, shareChart, retChart, mcChart].forEach(c => c && c.resize());
     const top = $('tabCalc').getBoundingClientRect().top + window.scrollY - 12;
     if (window.scrollY > top) window.scrollTo({top, behavior: 'smooth'});
   }
@@ -1431,7 +1433,7 @@
   }
   function planSummary(raw, withMC){
     const p = parse(raw, raw.__live);
-    const L = clamp(Math.round(raw.__live || 90), p.noRetire ? p.age + 2 : p.retire + 1, FOREVER);
+    const L = clamp(Math.round(raw.__live || 100), p.noRetire ? p.age + 2 : p.retire + 1, FOREVER);
     const R = compute(p, p.years, L), q = R.q, H = q.H, goal = hasRetirementGoal(p);
     // the plan's own live-to age picks the wording, then the page's goes back
     const was = inForever; inForever = R.forever;
@@ -1621,7 +1623,9 @@
     inForever = L > MAX_AGE;
     const R = compute(p, p.years, L);
     let N;
-    if (!ui.touched) N = (xTotal(p) > 0 && R.m1 !== null && R.m1 <= R.q.H) ? Math.round(R.m1 / 12) : Math.round(p.years / 2);
+    // untouched, the stop slider sits at the earliest age you could stop adding money and still be on track,
+    // or at retirement if that never happens
+    if (!ui.touched) N = R.coast !== null ? clamp(Math.ceil(R.coast / 12), 0, p.years) : p.years;
     else N = clamp(Math.round(ui.stopAge - p.age), 0, p.years);
     R.N = N; R.stopRes = run(R.q, {stop: N * 12});
     computeMore(p, R);
@@ -1708,7 +1712,7 @@
     if (isFinite(v)){ const f = Math.round(v).toLocaleString('en-GB'); if (el.dataset.mirror) $(el.dataset.mirror).value = f; if (f !== el.value){ el.value = f; render(); } }
   });
   $('stop').addEventListener('input', () => { ui.touched = true; ui.stopAge = +$('stop').value; render(); });
-  $('live').addEventListener('input', () => { ui.live = +$('live').value; render(); });
+  $('live').addEventListener('input', () => { ui.live = +$('live').value; ui.liveSet = true; render(); });
   $('langSeg').addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b || !I18N[b.dataset.v]) return;
     ui.lang = LANG = b.dataset.v; applyStatic();
@@ -1716,6 +1720,7 @@
     render();
   });
   $('tabCalc').addEventListener('click', () => showTab('calc'));
+  $('tabDet').addEventListener('click', () => showTab('det'));
   $('tabSum').addEventListener('click', () => showTab('sum'));
   $('goCalc').addEventListener('click', () => showTab('calc'));
   $('imgBtn').addEventListener('click', saveImage);
@@ -1739,6 +1744,8 @@
   }
   $('goCalc2').addEventListener('click', () => showTab('calc'));
   $('goSum').addEventListener('click', () => showTab('sum'));
+  $('goSum2').addEventListener('click', () => showTab('sum'));
+  $('goDet').addEventListener('click', () => showTab('det'));
   $('sIncome').addEventListener('input', () => { $('pay').value = $('sIncome').value; render(); });
   $('lookSeg').addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
@@ -1757,7 +1764,7 @@
   $('loadA').addEventListener('click', () => loadPlan('A'));
   $('loadB').addEventListener('click', () => loadPlan('B'));
   $('reset').addEventListener('click', () => {
-    writeRaw(null); ui.touched = false; ui.live = 90; ui.answers = {match: null, cash: null, debt: null, life: null}; render();
+    writeRaw(null); ui.touched = false; ui.live = 100; ui.liveSet = false; ui.answers = {match: null, cash: null, debt: null, life: null}; render();
   });
   const rebuild = () => { if (window.Chart && potChart){ buildCharts(); render(); } };
   const mq = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null;

@@ -1,5 +1,5 @@
-// Opens the page in a headless browser, switches through every language and both tabs, with the live-to
-// slider at 90 and at "Keep going forever", checks the answer-everything rule and the God Emperor,
+// Opens the page in a headless browser, switches through every language and all three tabs, with the live-to
+// slider at 100 and at "Keep going forever", checks the answer-everything rule and the God Emperor,
 // and fails on script errors or untranslated keys. Run with: npm test
 import { chromium } from 'playwright';
 import { fileURLToPath } from 'node:url';
@@ -39,12 +39,12 @@ for (const [id, v] of Object.entries(answers)) await page.selectOption('#' + id,
 await page.waitForTimeout(3000);
 if (await rpgName() === await page.evaluate(() => MMA.i18n.en['adv.unknown'])) fail('no adventurer after every question was answered');
 
-for (const live of [90, 121]) {
+for (const live of [100, 121]) {
   await setLive(live);
   await page.waitForTimeout(2500);
   for (const lang of ['en', 'th', 'zh']) {
     await page.click(`#langSeg button[data-v=${lang}]`);
-    for (const tab of ['tabCalc', 'tabSum']) {
+    for (const tab of ['tabCalc', 'tabDet', 'tabSum']) {
       await page.click('#' + tab);
       await page.waitForTimeout(600);
       await checkText(`${lang}/${tab}/live ${live === 121 ? 'forever' : live}`);

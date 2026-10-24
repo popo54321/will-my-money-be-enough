@@ -33,7 +33,7 @@ npm test                         # language check + headless browser smoke test
 
 | File | What it holds |
 |---|---|
-| `index.html` | The page structure: Calculator tab, Summary tab, all sections |
+| `index.html` | The page structure: Calculator, Details and Result tabs, all sections |
 | `css/styles.css` | All styles: cream and night colour looks, layout and print-free design |
 | `js/i18n/en.js`, `th.js`, `zh.js` | Every piece of text, one file per language |
 | `js/icons.js` | The 21 adventurer symbols (original SVG drawings) |
