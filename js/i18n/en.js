@@ -447,6 +447,6 @@ MMA.i18n.en = {
   'ck.job.unsteady.t': 'Income that goes up and down needs a bigger cash cushion. Aim for at least six months of spending in cash, and plan around your leaner months.',
   'ck.job.no.t': 'Without income from work, your savings are carrying you. Keep spending tight and protect your cash until money is coming in again.',
   'scen.h': 'Bonus question: when could you stop adding money?',
-  'scen.intro': 'This part isn’t about whether your retirement works: that’s “After you retire” above. It looks for the point where the pot grows so much on its own that the money you add each month barely matters. “Not reached” just means your monthly money keeps mattering, which is normal for most people.',
-  'scen.no': 'Not reached'
+  'scen.intro': 'This part isn’t about whether your retirement works: that’s “After you retire” above. It looks for the point where the pot grows so much on its own that the money you add each month barely matters. “Never reached” just means your monthly money keeps mattering, which is normal for most people.',
+  'scen.no': 'Never reached'
 };
