@@ -33,7 +33,7 @@ A static, no-build web app: "Will My Money Be Enough?", a gamified retirement an
 4. **The shared image must never show level-up amounts.** `buildImage()` strips `.quest .qa` (when the quest has a target) and `.privrow`. Keep that when you change the Summary.
 5. **Blank boxes that show "None" count as 0.** Take-home pay and spending now show "–" because they're needed.
 6. **Colours come from CSS variables** in `css/styles.css`: `--keep`, `--keep-soft`, `--s1/s2/s3`, `--coast` and their `-ink` versions. Cream is the default look; Night is opt-in via `html[data-look="night"]`. Don't follow `prefers-color-scheme`; the owner wants cream by default.
-7. **Defaults lean cautious on purpose:** inflation 3.5% and growth after retirement 5%. Optional extras default to blank (none).
+7. **Defaults:** inflation 3% (about the world average; World Bank world consumer prices rose about 3.5% a year on average since 2000, most countries a little less) and growth after retirement 5%, which leans cautious. Optional extras default to blank (none).
 8. **Keep the "not financial advice" note** (`heads` key) under the title and in the shared image.
 9. **Forever mode text:** `t()` swaps any key for its `key.f` version while `inForever` is on. Any text with `{L}` (the live-to age) must have a `.f` version; `npm run check` enforces it.
 10. **Ranks:** no adventurer until every Summary question is answered (`missing` in `renderSummary()`). Follow-up questions are greyed out until the question they follow is answered. Level 21 (God Emperor) is never reached through the ladders alone. Ticking “I’ll retire when I die” (`noRetire`) models retirement in the year before the live-to age and always gives Level 0, The Labourer (`LABOUR`), with a kind note.

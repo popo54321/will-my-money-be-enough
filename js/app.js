@@ -112,7 +112,7 @@
     raw[ROWS[k].count] = n - 1;
     writeRaw(raw); render();
   }
-  const CORE = {start: '10,000', monthly: '500', raise: '', infl: '3.5', growth: '7', growth2: '5', age: '30', retire: '60', spend: '1,500',
+  const CORE = {start: '10,000', monthly: '500', raise: '', infl: '3', growth: '7', growth2: '5', age: '30', retire: '60', spend: '1,500',
     s1: '25', s2: '5', yield: '2', vol1: '15', vol2: '10', fall: '30', pay: '', two: false, pSame: true};
   function defaults(){
     const d = Object.assign({}, CORE);
@@ -149,6 +149,8 @@
   function loadAll(){
     let saved = {};
     try { saved = JSON.parse(localStorage.getItem(STORE) || '{}') || {}; } catch(e){ saved = {}; }
+    // the default inflation moved from 3.5% to 3% (about the world average); move saves still on the old default
+    if (saved.raw && String(saved.raw.infl).trim() === '3.5') saved.raw.infl = '3';
     writeRaw(saved.raw || null);
     if (saved.ui){
       // actual future amounts are the default; keep today's prices only for people who picked it themselves
