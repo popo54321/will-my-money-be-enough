@@ -21,7 +21,7 @@
   <div class="tabs" role="tablist"><button type="button" role="tab" id="tabCalc" data-tab="calc" aria-selected="true" data-t="tab.calc"></button><button type="button" role="tab" id="tabSum" data-tab="sum" aria-selected="false" data-t="tab.sum"></button></div>
   <div id="pageCalc">
       <nav class="toc" id="toc">
-        <a href="#s-ret" data-t="toc.ret"></a><a href="#s-scen" data-t="toc.scen"></a><a href="#s-mkt" data-t="toc.mkt"></a><a href="#s-ages" data-t="toc.ages"></a><a href="#s-pay" data-t="toc.pay"></a><a href="#s-decide" data-t="toc.decide"></a><a href="#s-today" data-t="sm.today"></a><a href="#s-life" data-t="sm.check.h"></a><a href="#s-ins" data-t="sm.ins.h"></a><a href="#s-plans" data-t="toc.plans"></a>
+        <a href="#s-today" data-t="sm.today"></a><a href="#s-life" data-t="sm.check.h"></a><a href="#s-ins" data-t="sm.ins.h"></a><a href="#s-ret" data-t="toc.ret"></a><a href="#s-scen" data-t="toc.scen"></a><a href="#s-mkt" data-t="toc.mkt"></a><a href="#s-ages" data-t="toc.ages"></a><a href="#s-pay" data-t="toc.pay"></a><a href="#s-decide" data-t="toc.decide"></a><a href="#s-plans" data-t="toc.plans"></a>
       </nav>
 
   <section class="panel" aria-labelledby="h-inputs">
@@ -39,14 +39,15 @@
       <label class="tog" style="grid-column:1/-1;margin:-4px 0 0"><input type="checkbox" id="noRetire" data-save> <span data-t="f.noRetire"></span></label>
       <div class="field"><label for="spend" data-l="f.spend" data-h="f.spend.h"></label><div class="box"><input id="spend" data-save data-money inputmode="decimal" autocomplete="off" data-ph="none"></div></div>
     </div>
-    <p class="tip" data-t="tip"></p>
+    <details class="more"><summary data-t="tip.more"></summary><p class="tip" data-t="tip"></p></details>
 
-    <h3 data-t="lines.h"></h3>
+    <details class="more"><summary data-t="lines.sum"></summary>
     <p class="note" data-t="lines.note"></p>
     <div class="grid">
       <div class="field"><label for="s1" data-l="sc1" data-h="f.s1.h"></label><div class="box"><input id="s1" data-save inputmode="decimal" autocomplete="off"><span class="suf" data-t="ofGain"></span></div></div>
       <div class="field"><label for="s2" data-l="sc2" data-h="f.s2.h"></label><div class="box"><input id="s2" data-save inputmode="decimal" autocomplete="off"><span class="suf" data-t="ofGain"></span></div></div>
     </div>
+    </details>
 
     <details class="extras" id="extras">
       <summary><span data-t="ex.sum"></span><span class="excount" id="exCount"></span></summary>
@@ -71,6 +72,53 @@
     <div class="showas"><span data-t="look"></span><div class="seg" id="lookSeg"><button type="button" data-v="cream" aria-pressed="true" data-t="look.cream"></button><button type="button" data-v="night" aria-pressed="false" data-t="look.night"></button></div></div>
     <p class="warn" id="msg" role="alert"></p>
     <button class="reset" id="reset" type="button" data-t="reset"></button>
+  </section>
+
+  <section class="part" id="s-today" aria-labelledby="h-today">
+    <h2 class="big" id="h-today" data-t="sm.today"></h2>
+    <p class="intro" data-t="sm.today.intro"></p>
+        <div class="grid four">
+      <div class="field"><label for="sIncome" data-l="pay.l1" data-h="optional"></label><div class="box"><input id="sIncome" data-money data-mirror="pay" inputmode="decimal" autocomplete="off" placeholder="–"></div></div>
+      <div class="field"><label for="sSpend" data-l="s.spend" data-h="s.spend.h"></label><div class="box"><input id="sSpend" data-save data-money inputmode="decimal" autocomplete="off" placeholder="–"></div></div>
+      <div class="field"><label for="sDebtPay" data-l="s.debtPay" data-h="s.debtPay.h"></label><div class="box"><input id="sDebtPay" data-save data-money inputmode="decimal" autocomplete="off" data-ph="none"></div></div>
+      <div class="field"><label for="sDebt" data-l="s.debt"></label><div class="box"><input id="sDebt" data-save data-money inputmode="decimal" autocomplete="off" data-ph="none"></div></div>
+      <div class="field"><label for="sMortgage" data-l="s.mortgage" data-h="optional"></label><div class="box"><input id="sMortgage" data-save data-money inputmode="decimal" autocomplete="off" data-ph="none"></div></div>
+      <div class="field"><label for="sRate" data-l="s.rate" data-h="optional"></label><div class="box"><input id="sRate" data-save inputmode="decimal" autocomplete="off" data-ph="none"><span class="suf">%</span></div></div>
+      <div class="field"><label for="sCash" data-l="s.cash" data-h="s.cash.h"></label><div class="box"><input id="sCash" data-save data-money inputmode="decimal" autocomplete="off" data-ph="none"></div></div>
+    </div>
+  </section>
+
+  <section class="part" id="s-life" aria-labelledby="h-life">
+    <h2 class="big" id="h-life" data-t="sm.check.h"></h2>
+    <p class="intro" data-t="sm.check.intro"></p>
+    <div class="grid ins">
+      <div class="field" id="fdJob"><label for="sJob" data-l="ck.job"></label><div class="box"><select id="sJob" data-save><option value="" data-t="choose"></option><option value="steady" data-t="ck.job.steady"></option><option value="unsteady" data-t="ck.job.unsteady"></option><option value="no" data-t="ck.job.no"></option></select></div></div>
+      <div class="field" id="fdHouse"><label for="sHouse" data-l="ck.house"></label><div class="box"><select id="sHouse" data-save><option value="" data-t="choose"></option><option value="own" data-t="ck.house.own"></option><option value="mortgage" data-t="ck.house.mortgage"></option><option value="rent" data-t="ck.house.rent"></option><option value="family" data-t="ck.house.family"></option></select></div></div>
+      <div class="field" id="fdCar"><label for="sCar" data-l="ck.car"></label><div class="box"><select id="sCar" data-save><option value="" data-t="choose"></option><option value="own" data-t="ck.car.own"></option><option value="loan" data-t="ck.car.loan"></option><option value="family" data-t="ck.car.family"></option><option value="plan" data-t="ck.car.plan"></option><option value="none" data-t="ck.car.none"></option></select></div></div>
+      <div class="field" id="fdDeps"><label for="sDeps" data-l="ck.deps"></label><div class="box"><select id="sDeps" data-save><option value="" data-t="choose"></option><option value="yes" data-t="have"></option><option value="no" data-t="haveNot"></option></select></div></div>
+      <div class="field" id="fdKids"><label for="sKids" data-l="ck.kids"></label><div class="box"><select id="sKids" data-save><option value="" data-t="choose"></option><option value="yes" data-t="have"></option><option value="plan" data-t="ck.kids.plan"></option><option value="no" data-t="haveNot"></option></select></div></div>
+      <div class="field" id="fdSchool"><label for="sSchool" data-l="ck.school"></label><div class="box"><select id="sSchool" data-save><option value="" data-t="choose"></option><option value="no" data-t="ck.school.no"></option><option value="maybe" data-t="ck.school.maybe"></option><option value="yes" data-t="ck.school.yes"></option></select></div></div>
+      <div class="field" id="fdKidCost"><label for="sKidCost" data-l="ck.kidCost"></label><div class="box"><select id="sKidCost" data-save><option value="" data-t="choose"></option><option value="yes" data-t="ck.kidCost.yes"></option><option value="invest" data-t="ck.kidCost.invest"></option><option value="life" data-t="ck.kidCost.life"></option><option value="no" data-t="ck.kidCost.no"></option></select></div></div>
+      <div class="field" id="fdBig"><label for="sBig" data-l="ck.big"></label><div class="box"><select id="sBig" data-save><option value="" data-t="choose"></option><option value="yes" data-t="have"></option><option value="no" data-t="haveNot"></option></select></div></div>
+      <div class="field" id="fdBigPay"><label for="sBigPay" data-l="ck.bigPay"></label><div class="box"><select id="sBigPay" data-save><option value="" data-t="choose"></option><option value="saved" data-t="ck.bigPay.saved"></option><option value="part" data-t="ck.bigPay.part"></option><option value="loan" data-t="ck.bigPay.loan"></option></select></div></div>
+      <div class="field" id="fdWill"><label for="sWill" data-l="ck.will"></label><div class="box"><select id="sWill" data-save><option value="" data-t="choose"></option><option value="yes" data-t="have"></option><option value="no" data-t="haveNot"></option></select></div></div>
+    </div>
+  </section>
+
+  <section class="part" id="s-ins" aria-labelledby="h-ins">
+    <h2 class="big" id="h-ins" data-t="sm.ins.h"></h2>
+    <p class="intro" data-t="sm.ins.intro"></p>
+    <div class="grid ins">
+      <div class="field" id="fdHealth"><label for="sHealth" data-l="ck.health"></label><div class="box"><select id="sHealth" data-save><option value="" data-t="choose"></option><option value="yes" data-t="have"></option><option value="public" data-t="ck.health.public"></option><option value="no" data-t="haveNot"></option></select></div></div>
+      <div class="field" id="fdLife"><label for="sLife" data-l="ck.life"></label><div class="box"><select id="sLife" data-save><option value="" data-t="choose"></option><option value="yes" data-t="have"></option><option value="no" data-t="haveNot"></option></select></div></div>
+      <div class="field" id="fdHomeIns"><label for="sHomeIns" data-l="ck.homeIns"></label><div class="box"><select id="sHomeIns" data-save><option value="" data-t="choose"></option><option value="yes" data-t="have"></option><option value="contents" data-t="ck.homeIns.contents"></option><option value="no" data-t="haveNot"></option></select></div></div>
+      <div class="field" id="fdCarIns"><label for="sCarIns" data-l="ck.carIns"></label><div class="box"><select id="sCarIns" data-save><option value="" data-t="choose"></option><option value="yes" data-t="have"></option><option value="no" data-t="haveNot"></option></select></div></div>
+      <div class="field" id="fdIncome"><label for="sIncomeIns" data-l="ck.income"></label><div class="box"><select id="sIncomeIns" data-save><option value="" data-t="choose"></option><option value="yes" data-t="have"></option><option value="work" data-t="ck.income.work"></option><option value="no" data-t="haveNot"></option></select></div></div>
+      <div class="field" id="fdCritical"><label for="sCritical" data-l="ck.critical"></label><div class="box"><select id="sCritical" data-save><option value="" data-t="choose"></option><option value="yes" data-t="have"></option><option value="no" data-t="haveNot"></option></select></div></div>
+      <div class="field" id="fdAccident"><label for="sAccident" data-l="ck.accident"></label><div class="box"><select id="sAccident" data-save><option value="" data-t="choose"></option><option value="yes" data-t="have"></option><option value="no" data-t="haveNot"></option></select></div></div>
+    </div>
+    <button class="btn2 big" id="goSum" type="button" style="margin-top:16px" data-t="sm.goSum"></button>
+    <p class="note" style="margin-top:14px" data-t="calc.detail"></p>
   </section>
 
   <section class="part" id="s-ret" aria-labelledby="h-ret">
@@ -220,9 +268,9 @@
         <div><span data-t="payMonth"></span><strong id="o0a"></strong></div><div><span class="potlbl"></span><strong id="o0b"></strong></div><div><span data-t="lastsTo"></span><strong id="o0c"></strong></div></div></div>
       <div class="opt main"><p class="olabel" id="o1l"></p><div class="ostats">
         <div><span data-t="payMonth"></span><strong id="o1a"></strong></div><div><span class="potlbl"></span><strong id="o1b"></strong></div><div><span data-t="lastsTo"></span><strong id="o1c"></strong></div></div></div>
-      <div class="opt"><p class="olabel" id="o2l"></p><div class="ostats">
+      <div class="opt" id="o2w"><p class="olabel" id="o2l"></p><div class="ostats">
         <div><span data-t="payMonth"></span><strong id="o2a"></strong></div><div><span class="potlbl"></span><strong id="o2b"></strong></div><div><span data-t="lastsTo"></span><strong id="o2c"></strong></div></div></div>
-      <div class="opt"><p class="olabel" data-t="fx.never"></p><div class="ostats">
+      <div class="opt" id="o3w"><p class="olabel" data-t="fx.never"></p><div class="ostats">
         <div><span data-t="payMonth"></span><strong id="o3a"></strong></div><div><span class="potlbl"></span><strong id="o3b"></strong></div><div><span data-t="lastsTo"></span><strong id="o3c"></strong></div></div></div>
     </div>
     <button class="usebtn" id="useBtn" type="button" hidden></button>
@@ -232,6 +280,8 @@
   <section class="part" id="s-decide" aria-labelledby="h-decide">
     <h2 class="big" id="h-decide" data-t="dec.h"></h2>
     <p class="intro" id="dIntro"></p>
+    <p class="cheernote" id="decShort" hidden></p>
+    <div id="decBody">
     <div class="why">
       <div class="ck"><h3 data-t="dec.keepH"></h3><ul id="whyKeep"></ul></div>
       <div class="c1"><h3 data-t="dec.spendH"></h3><ul id="whySpend"></ul></div>
@@ -253,53 +303,8 @@
       <p class="dhead" id="dHead"></p>
       <p class="dtext" id="dText"></p>
     </div>
+    </div>
     <p class="small" data-t="dec.disclaim"></p>
-  </section>
-
-  <section class="part" id="s-today" aria-labelledby="h-today">
-    <h2 class="big" id="h-today" data-t="sm.today"></h2>
-    <p class="intro" data-t="sm.today.intro"></p>
-        <div class="grid four">
-      <div class="field"><label for="sIncome" data-l="pay.l1" data-h="optional"></label><div class="box"><input id="sIncome" data-money data-mirror="pay" inputmode="decimal" autocomplete="off" placeholder="–"></div></div>
-      <div class="field"><label for="sSpend" data-l="s.spend" data-h="s.spend.h"></label><div class="box"><input id="sSpend" data-save data-money inputmode="decimal" autocomplete="off" placeholder="–"></div></div>
-      <div class="field"><label for="sDebtPay" data-l="s.debtPay" data-h="s.debtPay.h"></label><div class="box"><input id="sDebtPay" data-save data-money inputmode="decimal" autocomplete="off" data-ph="none"></div></div>
-      <div class="field"><label for="sDebt" data-l="s.debt"></label><div class="box"><input id="sDebt" data-save data-money inputmode="decimal" autocomplete="off" data-ph="none"></div></div>
-      <div class="field"><label for="sMortgage" data-l="s.mortgage" data-h="optional"></label><div class="box"><input id="sMortgage" data-save data-money inputmode="decimal" autocomplete="off" data-ph="none"></div></div>
-      <div class="field"><label for="sRate" data-l="s.rate" data-h="optional"></label><div class="box"><input id="sRate" data-save inputmode="decimal" autocomplete="off" data-ph="none"><span class="suf">%</span></div></div>
-      <div class="field"><label for="sCash" data-l="s.cash" data-h="s.cash.h"></label><div class="box"><input id="sCash" data-save data-money inputmode="decimal" autocomplete="off" data-ph="none"></div></div>
-    </div>
-  </section>
-
-  <section class="part" id="s-life" aria-labelledby="h-life">
-    <h2 class="big" id="h-life" data-t="sm.check.h"></h2>
-    <p class="intro" data-t="sm.check.intro"></p>
-    <div class="grid ins">
-      <div class="field" id="fdJob"><label for="sJob" data-l="ck.job"></label><div class="box"><select id="sJob" data-save><option value="" data-t="choose"></option><option value="steady" data-t="ck.job.steady"></option><option value="unsteady" data-t="ck.job.unsteady"></option><option value="no" data-t="ck.job.no"></option></select></div></div>
-      <div class="field" id="fdHouse"><label for="sHouse" data-l="ck.house"></label><div class="box"><select id="sHouse" data-save><option value="" data-t="choose"></option><option value="own" data-t="ck.house.own"></option><option value="mortgage" data-t="ck.house.mortgage"></option><option value="rent" data-t="ck.house.rent"></option><option value="family" data-t="ck.house.family"></option></select></div></div>
-      <div class="field" id="fdCar"><label for="sCar" data-l="ck.car"></label><div class="box"><select id="sCar" data-save><option value="" data-t="choose"></option><option value="own" data-t="ck.car.own"></option><option value="loan" data-t="ck.car.loan"></option><option value="family" data-t="ck.car.family"></option><option value="plan" data-t="ck.car.plan"></option><option value="none" data-t="ck.car.none"></option></select></div></div>
-      <div class="field" id="fdDeps"><label for="sDeps" data-l="ck.deps"></label><div class="box"><select id="sDeps" data-save><option value="" data-t="choose"></option><option value="yes" data-t="have"></option><option value="no" data-t="haveNot"></option></select></div></div>
-      <div class="field" id="fdKids"><label for="sKids" data-l="ck.kids"></label><div class="box"><select id="sKids" data-save><option value="" data-t="choose"></option><option value="yes" data-t="have"></option><option value="plan" data-t="ck.kids.plan"></option><option value="no" data-t="haveNot"></option></select></div></div>
-      <div class="field" id="fdSchool"><label for="sSchool" data-l="ck.school"></label><div class="box"><select id="sSchool" data-save><option value="" data-t="choose"></option><option value="no" data-t="ck.school.no"></option><option value="maybe" data-t="ck.school.maybe"></option><option value="yes" data-t="ck.school.yes"></option></select></div></div>
-      <div class="field" id="fdKidCost"><label for="sKidCost" data-l="ck.kidCost"></label><div class="box"><select id="sKidCost" data-save><option value="" data-t="choose"></option><option value="yes" data-t="ck.kidCost.yes"></option><option value="invest" data-t="ck.kidCost.invest"></option><option value="life" data-t="ck.kidCost.life"></option><option value="no" data-t="ck.kidCost.no"></option></select></div></div>
-      <div class="field" id="fdBig"><label for="sBig" data-l="ck.big"></label><div class="box"><select id="sBig" data-save><option value="" data-t="choose"></option><option value="yes" data-t="have"></option><option value="no" data-t="haveNot"></option></select></div></div>
-      <div class="field" id="fdBigPay"><label for="sBigPay" data-l="ck.bigPay"></label><div class="box"><select id="sBigPay" data-save><option value="" data-t="choose"></option><option value="saved" data-t="ck.bigPay.saved"></option><option value="part" data-t="ck.bigPay.part"></option><option value="loan" data-t="ck.bigPay.loan"></option></select></div></div>
-      <div class="field" id="fdWill"><label for="sWill" data-l="ck.will"></label><div class="box"><select id="sWill" data-save><option value="" data-t="choose"></option><option value="yes" data-t="have"></option><option value="no" data-t="haveNot"></option></select></div></div>
-    </div>
-  </section>
-
-  <section class="part" id="s-ins" aria-labelledby="h-ins">
-    <h2 class="big" id="h-ins" data-t="sm.ins.h"></h2>
-    <p class="intro" data-t="sm.ins.intro"></p>
-    <div class="grid ins">
-      <div class="field" id="fdHealth"><label for="sHealth" data-l="ck.health"></label><div class="box"><select id="sHealth" data-save><option value="" data-t="choose"></option><option value="yes" data-t="have"></option><option value="public" data-t="ck.health.public"></option><option value="no" data-t="haveNot"></option></select></div></div>
-      <div class="field" id="fdLife"><label for="sLife" data-l="ck.life"></label><div class="box"><select id="sLife" data-save><option value="" data-t="choose"></option><option value="yes" data-t="have"></option><option value="no" data-t="haveNot"></option></select></div></div>
-      <div class="field" id="fdHomeIns"><label for="sHomeIns" data-l="ck.homeIns"></label><div class="box"><select id="sHomeIns" data-save><option value="" data-t="choose"></option><option value="yes" data-t="have"></option><option value="contents" data-t="ck.homeIns.contents"></option><option value="no" data-t="haveNot"></option></select></div></div>
-      <div class="field" id="fdCarIns"><label for="sCarIns" data-l="ck.carIns"></label><div class="box"><select id="sCarIns" data-save><option value="" data-t="choose"></option><option value="yes" data-t="have"></option><option value="no" data-t="haveNot"></option></select></div></div>
-      <div class="field" id="fdIncome"><label for="sIncomeIns" data-l="ck.income"></label><div class="box"><select id="sIncomeIns" data-save><option value="" data-t="choose"></option><option value="yes" data-t="have"></option><option value="work" data-t="ck.income.work"></option><option value="no" data-t="haveNot"></option></select></div></div>
-      <div class="field" id="fdCritical"><label for="sCritical" data-l="ck.critical"></label><div class="box"><select id="sCritical" data-save><option value="" data-t="choose"></option><option value="yes" data-t="have"></option><option value="no" data-t="haveNot"></option></select></div></div>
-      <div class="field" id="fdAccident"><label for="sAccident" data-l="ck.accident"></label><div class="box"><select id="sAccident" data-save><option value="" data-t="choose"></option><option value="yes" data-t="have"></option><option value="no" data-t="haveNot"></option></select></div></div>
-    </div>
-    <button class="btn2" id="goSum" type="button" style="margin-top:16px" data-t="sm.goSum"></button>
   </section>
 
   <section class="part" id="s-plans" aria-labelledby="h-plans">
@@ -340,8 +345,6 @@
   </div>
 
   <div id="pageSum" hidden>
-    <div class="pdfbar" id="pdfBar" hidden><button class="btn2" id="shareBtn" type="button" hidden data-t="share.btn"></button><button class="btn2" id="imgBtn" type="button" hidden data-t="img.btn"></button><button class="btn2" id="imgShortBtn" type="button" hidden data-t="img.short"></button><p class="note" style="margin:0;flex-basis:100%" data-t="img.private"></p><label class="tog" style="flex-basis:100%"><input type="checkbox" id="hideAmts"> <span data-t="img.hide"></span></label><span class="busy" id="pdfMsg"></span>
-      <div class="social" id="social" hidden><a data-s="x" target="_blank" rel="noopener">X</a><a data-s="fb" target="_blank" rel="noopener">Facebook</a><p class="note" data-t="social.note"></p></div></div>
     <section class="panel rpgpanel" id="rpg">
       <p class="dlabel" data-t="adv.h"></p>
       <div class="rpgtop"><div class="rpgicon" id="rpgIcon"></div><div><p class="rpglvl" id="rpgLvl"></p><p class="rpgname" id="rpgName"></p><p class="rpgdesc" id="rpgDesc"></p></div></div>
@@ -349,7 +352,7 @@
         <div class="ladder"><p><span data-t="adv.ret"></span><strong id="rpgRetName"></strong></p><div class="steps" id="rpgRetSteps"></div></div>
         <div class="ladder hl"><p><span data-t="adv.health"></span><strong id="rpgHealthName"></strong></p><div class="steps" id="rpgHealthSteps"></div></div>
       </div>
-      <p class="lifenote" id="rpgLifeNote"></p><p class="nextnote privrow" id="rpgNextNote"></p><p class="cheernote privrow" id="rpgCheerNote"></p>
+      <p class="lifenote" id="rpgLifeNote"></p><p class="nextnote privrow" id="rpgNextNote"></p><p class="cheernote privrow" id="rpgCheerNote"></p><p class="goodnote" id="rpgGood"></p>
       <h3 data-t="adv.next"></h3>
       <div class="quests" id="rpgQuests"></div>
       <details class="allranks"><summary data-t="adv.all"></summary><p class="note" style="margin:10px 0 0" data-t="adv.tap"></p><div class="rankinfo" id="rankInfo" aria-live="polite" hidden></div><div class="rankgrid" id="rankGrid"></div></details>
@@ -357,11 +360,13 @@
     <section class="panel">
       <p class="dlabel" data-t="sm.overall"></p>
       <div class="sumcards">
-        <div class="sumcard" id="scFuture"><p class="sclabel" data-t="sm.future"></p><p class="schead" id="scFutureH"></p><p class="sctext" id="scFutureT"></p><p class="lifenote" id="lifeNote"></p><p class="nextnote privrow" id="nextNote"></p><p class="cheernote privrow" id="cheerNote"></p><details class="levels"><summary data-t="lv.all"></summary><ol class="lvlist" id="lvFuture"></ol><p class="lvfoot" id="lvFutureFoot"></p></details></div>
+        <div class="sumcard" id="scFuture"><p class="sclabel" data-t="sm.future"></p><p class="schead" id="scFutureH"></p><p class="sctext" id="scFutureT"></p><details class="levels"><summary data-t="lv.all"></summary><ol class="lvlist" id="lvFuture"></ol><p class="lvfoot" id="lvFutureFoot"></p></details></div>
         <div class="sumcard" id="scToday"><p class="sclabel" data-t="sm.today"></p><p class="schead" id="scTodayH"></p><p class="sctext" id="scTodayT"></p><details class="levels"><summary data-t="lv.all"></summary><ol class="lvlist" id="lvToday"></ol><p class="lvfoot" id="lvTodayFoot"></p></details></div>
       </div>
       <div class="counts" id="smCounts"></div>
     </section>
+    <div class="pdfbar" id="pdfBar" hidden><p class="dlabel" style="flex-basis:100%;margin:0" data-t="share.title"></p><button class="btn2" id="shareBtn" type="button" hidden data-t="share.btn"></button><button class="btn2" id="imgBtn" type="button" hidden data-t="img.btn"></button><button class="btn2" id="imgShortBtn" type="button" hidden data-t="img.short"></button><p class="note" style="margin:0;flex-basis:100%" data-t="img.private"></p><label class="tog" style="flex-basis:100%"><input type="checkbox" id="hideAmts"> <span data-t="img.hide"></span></label><span class="busy" id="pdfMsg"></span>
+      <div class="social" id="social" hidden><a data-s="x" target="_blank" rel="noopener">X</a><a data-s="fb" target="_blank" rel="noopener">Facebook</a><p class="note" data-t="social.note"></p></div></div>
 
     <section class="part">
       <h2 class="big" data-t="sm.future"></h2>
@@ -373,6 +378,7 @@
     <section class="part">
       <h2 class="big" data-t="sm.today"></h2>
       <p class="intro" data-t="sm.today.intro2"></p>
+      <div class="startbox" id="startHere" hidden><p class="sclabel" data-t="start.h"></p><p class="note" style="margin:2px 0 6px" data-t="start.t"></p><ol id="startList"></ol></div>
       <div class="checks">
         <div class="check" id="rwLeft"><span class="pill" id="ptLeft"></span><div><p class="q" data-t="m.left.q"></p><p class="a" id="atLeft"></p></div></div>
         <div class="check" id="rwRate"><span class="pill" id="ptRate"></span><div><p class="q" data-t="m.rate.q"></p><p class="a" id="atRate"></p></div></div>

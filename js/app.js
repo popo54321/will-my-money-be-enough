@@ -490,7 +490,7 @@
       let lo = 0, hi = 1;
       for (let k = 0; k < 12; k++){ const mid = (lo + hi) / 2; if (reaches(scaled(mid))) lo = mid; else hi = mid; }
       const y = Math.floor(p.spend * lo / 10) * 10;
-      if (y > 0 && y < p.spend) spend = y;
+      if (y > 0 && y < p.spend && lo >= 0.5) spend = y;
     }
     return {target, age, spend};
   }
@@ -540,7 +540,9 @@
     const fanLen = end / 12 + 1;
     const fan = wantFan ? new Float64Array(paths * fanLen) : null;
     let good = 0;
-    const f = (g, z, v) => { let R = g + v * z; if (R < -0.95) R = -0.95; return Math.pow((1 + R) * (1 - p.fees) / (1 + p.infl), 1 / 12) - 1; };
+    // The growth rate is read as the typical (compound) yearly growth, the way long-run returns are quoted,
+    // so the yearly draws are centred v²/2 higher and an average path ends close to steady growth.
+    const f = (g, z, v) => { let R = g + v * v / 2 + v * z; if (R < -0.95) R = -0.95; return Math.pow((1 + R) * (1 - p.fees) / (1 + p.infl), 1 / 12) - 1; };
     for (let k = 0; k < paths; k++){
       for (let y = 0; y < ny; y++){ const z = Z[k * ZY + Math.min(y, ZY - 1)]; pre[y] = f(p.growth, z, p.vol1); post[y] = f(p.growthR, z, p.vol2); }
       let P = q.start, out = false, outM = Infinity;
@@ -588,6 +590,7 @@
   function scenRow(k, m, p, R){
     const q = R.q;
     if (xTotal(p) <= 0) return setRow(k, '–', '', t('nothingIn'));
+    if (m !== null && m > q.H && hasRetirementGoal(p) && !p.noRetire && !ok(q, R.keep, R.nL)) return setRow(k, '–', '', t('scen.afterOut'));
     if (m === null) return setRow(k, t('scen.no'), '', t((q.rA <= 0 && q.rB <= 0) ? 'scen.neverInfl' : 'scen.never100'));
     const P = R.acc.pot[m], g = R.acc.gr[m], c = R.acc.co[m];
     const nom = xTotal(p) * Math.pow(1 + p.raise, Math.floor(m / 12));
@@ -599,6 +602,7 @@
     const q = R.q;
     if (xTotal(p) <= 0) return setRow('3', '–', '', t('nothingIn'));
     if (R.m1 === null) return setRow('3', '–', '', t('s3.na'));
+    if (R.m1 > q.H && hasRetirementGoal(p) && !p.noRetire && !ok(q, R.keep, R.nL)) return setRow('3', '–', '', t('scen.afterOut'));
     if (R.m3 === null) return setRow('3', t('no2'), '', t('s3.no100'));
     const parts = [];
     if (R.m3 === R.m1) parts.push(t('s3.straight'));
@@ -662,8 +666,8 @@
   }
 
   /* ---------- retirement ---------- */
-  function outcome(res, q){
-    if (res.out !== null) return t('out.at', {a: ageAt(res.out, q.p)});
+  function outcome(res, q, end){
+    if (res.out !== null) return t(!q.forever && end !== undefined && res.out >= end ? 'goneAt' : 'out.at', {a: ageAt(res.out, q.p)});
     if (q.forever) return t('lasts.never');
     return t(res.pot[q.iEnd] >= res.pot[q.H] ? 'out.grow' : (lastsForever(q, res) ? 'lasts.never' : 'out.past'));
   }
@@ -678,22 +682,26 @@
       const set = (i, v) => $('r' + c.k + i).textContent = v;
       set(0, mon(p, P, H)); set(1, mon(p, div, H)); set(2, mon(p, val, H)); set(3, fee > 0.5 ? '−' + mon(p, fee, H) : '0');
       set(4, mon(p, tot, H)); set(5, mon(p, q.inc[H], H)); set(6, mon(p, q.wd[H], H)); set(7, mon(p, q.wd[H] - q.net[H], H));
-      set(8, P > 0 ? pct(12 * q.wd[H] / P) : '–'); set(9, outcome(c.res, q));
+      set(8, P > 0 ? pct(12 * q.wd[H] / P) : '–'); set(9, outcome(c.res, q, end));
     });
     const P = R.keep.pot[H], tot = R.keep.gr[H], div = P * p.yld / 12, val = tot - div;
-    const parts = [t(val >= 0 ? 'r.l1pos' : 'r.l1neg', {r: p.retire, P: mon(p, P, H), g: pct(p.growthR), div: mon(p, div, H), val: mon(p, Math.abs(val), H), fees: p.fees > 0 ? t('r.fees') : ''}),
+    // the verdict comes first, then how it's worked out
+    const how = [t(val >= 0 ? 'r.l1pos' : 'r.l1neg', {r: p.retire, P: mon(p, P, H), g: pct(p.growthR), div: mon(p, div, H), val: mon(p, Math.abs(val), H), fees: p.fees > 0 ? t('r.fees') : ''}),
       t('r.total', {t: mon(p, tot, H)})];
-    if (!hasRetirementGoal(p)) parts.push(t('r.noGoal'));
+    let parts;
+    if (!hasRetirementGoal(p)) parts = how.concat(t('r.noGoal'));
     else {
+      const out = R.keep.out;
+      parts = [out !== null && (R.forever || out < end) ? t('r.vOut', {A: ageText(out, p), L: R.L})
+        : (out !== null ? t('r.vPast', {A: ageText(out, p), L: R.L}) : t('r.vLast', {L: R.L}))];
       parts.push(t('r.spend', {s: mon(p, q.spendA[H], H), inc: q.inc[H] > 0 ? t('r.inc', {i: mon(p, q.inc[H], H)}) : '', w: mon(p, q.wd[H], H), tax: p.tax > 0 ? t('r.tax') : ''}));
       p.incomes.forEach(ic => {
         const sm = incStartMonth(ic, p);
         if (sm > H) parts.push(t(ic.who === 'partner' ? 'r.incLaterP' : 'r.incLater', {name: ic.name || t('otherIncome'), amt: mon(p, ic.amt, sm), a: ic.from}));
       });
+      parts = parts.concat(how);
       if (q.wd[H] > 0 && q.wd[H] <= div) parts.push(t('r.divCover'));
-      if (R.keep.out !== null) parts.push(t('r.out', {A: ageText(R.keep.out, p)}));
-      else if (q.forever) parts.push(t('r.lastsF'));
-      else parts.push(t(R.keep.pot[q.iEnd] >= P ? 'r.grow' : 'r.shrink'));
+      if (out === null && !R.forever) parts.push(t(R.keep.pot[q.iEnd] >= P ? 'r.grow' : 'r.shrink'));
     }
     $('rLead').textContent = join(parts);
     $('liveOut').textContent = t('live.out', {L: R.L}) + (p.two && !R.forever ? t('live.partner', {a: p.pAge + R.L - p.age}) : '');
@@ -717,7 +725,7 @@
     if (hasRetirementGoal(p)){
       need = join([isFinite(R.need) ? t('r.need', {L: R.L, leave: leaveTxt(p, end), n: mon(p, R.need, H), r: p.retire}) : t('r.needInf'),
         // in forever mode "never runs out" and "never shrinks" come to the same amount, so it's said once
-        (!R.forever && R.pNever !== null && R.pNever > 0) ? t('r.never', {n: mon(p, R.pNever, H)}) : '']);
+        (!R.forever && R.pNever !== null && R.pNever > 0 && ok(q, R.keep, R.nL)) ? t('r.never', {n: mon(p, R.pNever, H)}) : '']);
     }
     $('rNeed').textContent = need;
   }
@@ -739,11 +747,13 @@
   }
   function renderMC(p, R, mc){
     const q = R.q, end = q.H + R.nL;
-    $('mcChance').textContent = Math.round(mc.chance * 100) + '%';
-    $('mcCap').textContent = t('mc.cap', {L: R.L, leave: leaveTxt(p, end)});
-    const steady = ok(q, R.keep, R.nL);
+    const steady = ok(q, R.keep, R.nL), failed = hasRetirementGoal(p) && !steady;
+    // if steady growth already fails, a big 0% only piles on: say what to fix first instead
+    $('mcChance').textContent = failed ? '–' : Math.round(mc.chance * 100) + '%';
+    $('mcCap').textContent = failed ? t('mc.failCap') : t('mc.cap', {L: R.L, leave: leaveTxt(p, end)});
     let lead;
     if (!hasRetirementGoal(p)) lead = t('mc.noGoal');
+    else if (failed) lead = R.keep.out !== null ? t('mc.fail', {A: ageText(R.keep.out, p)}) : t('mc.failShort');
     else lead = join([steady ? t('mc.ok', {L: R.L}) : (R.keep.out !== null ? t('mc.out', {A: ageText(R.keep.out, p)}) : t('mc.short')),
       t('mc.n', {n: Math.round(mc.chance * 1000).toLocaleString('en-GB')})]);
     $('mcLead').textContent = lead;
@@ -775,13 +785,17 @@
     for (let k = 0; k < 16 && hi - lo > 5; k++){ const mid = (lo + hi) / 2; if (good(mid)) hi = mid; else lo = mid; }
     return {X: Math.ceil(hi / 10) * 10};
   }
+  // an amount bigger than take-home pay can't be the whole answer, so say so instead of just showing it
+  // up: already on track and only looking at the last step, so it's a stretch, not a gap
+  const overPay = (p, x, up) => p.pay > 0 && x > p.pay ? t(up ? 'over.payUp' : 'over.pay') : '';
   function renderRainyFix(p, R, mc){
     const el = $('mcFix');
-    if (!hasRetirementGoal(p)){ el.textContent = ''; return; }
+    // when steady growth already fails, the market test isn't the place to fix it
+    if (!hasRetirementGoal(p) || !ok(R.q, R.keep, R.nL)){ el.textContent = ''; return; }
     const rp = payFor(R.q, R.nL, 0.9);
     if (rp.ok) el.textContent = t('mc.fixOk', {L: R.L});
     else if (rp.impossible) el.textContent = t('mc.fixNo', {L: R.L});
-    else el.textContent = t('mc.fix', {a: isFinite(mc.o10) ? ageAt(mc.o10, p) : R.L, x: money(rp.X), now: money(p.X), L: R.L});
+    else el.textContent = join([t('mc.fix', {a: isFinite(mc.o10) ? ageAt(mc.o10, p) : R.L, x: money(rp.X), now: money(p.X), L: R.L}), overPay(p, rp.X)]);
   }
 
   /* ---------- retirement ages ---------- */
@@ -826,7 +840,9 @@
     else if (enough) txt = req === 0 ? t((p.two && p.pX > 0) ? 'fx.partnerEnough' : 'fx.potEnough', {goal}) : t('fx.enough', {x: money(p.X), goal, req: money(req)});
     else txt = join([goneBy(R, R.keep) ? t('fx.outBefore', {x: money(p.X), A: ageText(R.keep.out, p), L})
       : t('fx.shortLeave', {x: money(p.X), left: mon(p, R.keep.pot[end], end), L}),
-      t('fx.payInstead', {goal, req: money(req), more: money(req - p.X), r: p.retire})]);
+      t('fx.payInstead', {goal, req: money(req), more: money(req - p.X), r: p.retire}), overPay(p, req)]);
+    // the safety-margin options only help once the plan works; before that they just pile on bigger numbers
+    $('o2w').hidden = $('o3w').hidden = !enough;
     $('fxIntro').textContent = txt;
     $('fxFig').textContent = req === null ? '–' : money(req);
     $('fxCap').textContent = req === null ? '' : t(enough ? 'fx.capLeast' : 'fx.capNeed', {goal});
@@ -846,6 +862,10 @@
   function renderDecision(p, R){
     const q = R.q, H = q.H, nL = R.nL, L = R.L, end = H + nL, x = xTotal(p), mo = money(x);
     $('dIntro').textContent = t('dec.intro', {x: mo});
+    // not on track yet, or Scenario 1 only comes after retirement: the whole keep-or-spend question doesn't apply
+    const short = x <= 0 ? null : ((hasRetirementGoal(p) && !p.noRetire && !ok(q, R.keep, nL)) ? 'dec.short' : ((R.m1 === null || R.m1 >= H) ? 'dec.na' : null));
+    $('decShort').textContent = short ? t(short) : ''; $('decShort').hidden = !short;
+    $('decBody').hidden = $('dIntro').hidden = !!short;
     $('qB').textContent = t('q.b', {a: pct(p.growth - 0.02), c: pct(p.growth)});
     $('payLbl').innerHTML = esc(t(p.two ? 'pay.l2' : 'pay.l1')) + '<span class="hint">' + esc(t('optional')) + '</span>';
     const applies = x > 0 && R.m1 !== null, m1 = R.m1;
@@ -1006,11 +1026,11 @@
         else {
           const to = RANKS[rankOf(rl + 1, hl)];
           let text;
-          if (rl === 1) text = R.payL === null ? t('quest.ret1.imp', {L}) : t('quest.ret1', {x: money(R.payL), now: money(p.X), L});
+          if (rl === 1) text = R.payL === null ? t('quest.ret1.imp', {L}) : join([t('quest.ret1', {x: money(R.payL), now: money(p.X), L}), overPay(p, R.payL)]);
           else if (lastQuest === undefined) text = t('busy');
           else if (!lastQuest || lastQuest.res.impossible) text = t('quest.retImp');
           else if (lastQuest.res.ok || lastQuest.res.X <= p.X) text = t('quest.retClose');
-          else text = t(rl === 2 ? 'quest.ret2' : 'quest.ret3', {x: money(lastQuest.res.X), now: money(p.X)});
+          else text = join([t(rl === 2 ? 'quest.ret2' : 'quest.ret3', {x: money(lastQuest.res.X), now: money(p.X)}), overPay(p, lastQuest.res.X, rl === 3)]);
           quests.push({label: t('quest.ret'), to, text});
         }
         // health quest
@@ -1024,6 +1044,8 @@
           quests.push({label: t('quest.health'), to, text});
         }
       }
+      // when money today is in crisis or struggling, sort today out first, as the rank description says
+      if (hl !== null && hl <= 2 && quests.length === 2 && quests[1].label === t('quest.health')) quests.reverse();
       $('rpgQuests').innerHTML = quests.map(qq => '<div class="quest"><div class="qicon" style="background:' + (qq.to ? tierBg(RANKS.indexOf(qq.to)) : (qq.god ? GOD_BG : '#F6E6B4')) + '">' +
         (qq.to ? ICONS[qq.to.k] : (qq.god ? ICONS.god : ICONS.emperor)) + '</div><div><p class="qt">' + esc(qq.label) + '</p>' +
         (qq.to ? '<p class="qn">' + esc(t('quest.to', {name: t('rk.' + qq.to.k)})) + '</p>' : '') + '<p class="qa">' + esc(qq.text) + '</p></div></div>').join('');
@@ -1363,16 +1385,30 @@
       if (LEVELS.fut.indexOf(lifeAt.fs) < LEVELS.fut.indexOf(fs) || nA > adv.n)
         lifeNote = join([t('life.note', {L, a: lifeAt.a, lvl: t('fut.' + lifeAt.fs + '.h')}), nA ? t('life.rank', {n: nA, name: t('rk.' + RANKS[nA].k)}) : '', t('life.try', {a: lifeAt.a})]);
     }
-    $('lifeNote').textContent = lifeNote; $('rpgLifeNote').textContent = lifeNote;
+    $('rpgLifeNote').textContent = lifeNote;
     // the next step up, worked out in the background, and a kind word for anyone below On track
     let next = '';
     if (nextHelp && (nextHelp.age || nextHelp.spend)){
       const v = {lvl: t('fut.' + nextHelp.target + '.h'), a: nextHelp.age, y: money(nextHelp.spend || 0)};
       next = t(nextHelp.age && nextHelp.spend ? 'nx.both' : (nextHelp.age ? 'nx.age' : 'nx.spend'), v);
     }
-    const cheer = p.noRetire ? t('never.note') : goal && p.years > 0 && (fs === 'bad' || fs === 'ok') ? t('cheer.t', {d: dur(p.years * 12)}) : '';
-    $('nextNote').textContent = next; $('rpgNextNote').textContent = next;
-    $('cheerNote').textContent = cheer; $('rpgCheerNote').textContent = cheer;
+    // only worth saying when the plan isn't on track yet; from On track up, the levels are a bonus
+    else if (nextHelp && fs === 'bad') next = t('nx.hard', {lvl: t('fut.' + nextHelp.target + '.h')});
+    // the kind word fits the level: not on track yet gets comfort, close but fragile gets told how close it is
+    const cheer = p.noRetire ? t('never.note') : (goal && p.years > 0 && fs === 'bad' ? t('cheer.t', {d: dur(p.years * 12)}) : (goal && p.years > 0 && fs === 'ok' ? t('cheer.ok', {d: dur(p.years * 12)}) : ''));
+    $('rpgNextNote').textContent = next;
+    $('rpgCheerNote').textContent = cheer;
+    // what's already going well, before the problems (only when there are problems to balance)
+    const GOOD = ['Job', 'Left', 'Cash', 'Exp', 'Debt', 'Rate', 'Fit', 'Health', 'Life', 'Other', 'Will'];
+    const st = k => { const it = ITEMS.find(i => i.key === k); return it ? it.st : null; };
+    const goods = GOOD.filter(k => st(k) === 'good').slice(0, 2).map(k => t('good.' + k));
+    const hasProblems = ITEMS.some(i => i.st === 'ok' || i.st === 'bad');
+    $('rpgGood').textContent = goods.length && hasProblems ? t('good.t', {items: goods.join(t('good.and'))}) : '';
+    // when several things need attention, point at the few that matter most
+    const PRIO = ['Left', 'Cash', 'Exp', 'Job', 'KidCost', 'Health', 'Life', 'Fit', 'Other', 'Debt', 'Rate', 'BigPay', 'School', 'HomeIns', 'Income', 'CarIns', 'Will', 'Critical', 'Accident', 'House', 'Car', 'Sp'];
+    const bads = PRIO.filter(k => st(k) === 'bad').slice(0, 3);
+    $('startHere').hidden = bads.length < 2;
+    $('startList').innerHTML = bads.map(k => { const row = $('rw' + k); return '<li><a href="#rw' + k + '">' + esc(row ? row.querySelector('.q').textContent : k) + '</a></li>'; }).join('');
   }
   const applyTab = () => {
     $('pageCalc').hidden = ui.tab !== 'calc'; $('pageSum').hidden = ui.tab !== 'sum';
