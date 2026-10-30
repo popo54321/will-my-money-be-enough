@@ -325,3 +325,6 @@ h2.big::before{content:"";flex:none;width:14px;height:14px;border-radius:50% 0 5
   header .heads{grid-column:2;grid-row:1 / span 2;margin:0;max-width:none;}
 }
 @media (min-width:1000px) and (max-width:1199px){.calcgrid .grid.ins{grid-template-columns:minmax(0,1fr);}}
+.rkhow{margin:10px 0 0;padding:10px 12px;border-radius:12px;background:var(--keep-fill);font-size:.86rem;line-height:1.5;}
+.rkhow p{margin:4px 0 0;}
+.rkhow .rkhowh{margin:0;font-weight:800;color:var(--keep-ink);}

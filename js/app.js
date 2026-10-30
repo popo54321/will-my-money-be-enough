@@ -1115,14 +1115,103 @@
         (qq.to ? ICONS[qq.to.k] : (qq.god ? ICONS.god : ICONS.emperor)) + '</div><div><p class="qt">' + esc(qq.label) + '</p>' +
         (qq.to ? '<p class="qn">' + esc(t('quest.to', {name: t('rk.' + qq.to.k)})) + '</p>' : '') + '<p class="qa">' + esc(qq.text) + '</p></div></div>').join('');
     }
+    rkCtx = {p, L: R.L, rl, hl, n, dyn: rl === 4 && !!(R.god && R.god.ok), left: c.left, missing: c.missing.length, key: JSON.stringify(readRaw()) + '|' + R.L + '|' + rl + '|' + hl};
+    if (!rkCache || rkCache.key !== rkCtx.key) rkCache = {key: rkCtx.key, done: {}};
     $('rankGrid').innerHTML = RANKS.map((rk, i) => '<button type="button" class="rk' + (i === n ? ' me' : '') + (i === GOD ? ' god' : '') + '" data-n="' + i + '" aria-pressed="' + (i === rankSel) + '"><span class="ri" style="background:' + tierBg(i) + '">' + ICONS[rk.k] +
       '</span><span class="rl">' + esc(t('adv.lv', {n: i})) + '</span><span class="rn">' + esc(t('rk.' + rk.k)) + '</span>' + (i === n ? '<span class="you">' + esc(t('adv.you')) + '</span>' : '') + '</button>').join('');
     renderRankInfo();
     updateSocial();
     return {hl, n};
   }
-  // tap any adventurer in the grid to read about it
-  let rankSel = null;
+  // tap any adventurer in the grid to read about it, and see what it would take to become it, up or down
+  let rankSel = null, rkCtx = null, rkCache = null;
+  const FUT_OF_RL = [null, 'bad', 'ok', 'good', 'gold'];
+  // Retirement ladder down to step r: the smallest single change that loses step r+1 (invest less, retire earlier, spend more)
+  function waysDown(p, L, r){
+    const tiUp = LEVELS.fut.indexOf(FUT_OF_RL[r + 1]), tiHere = LEVELS.fut.indexOf(FUT_OF_RL[r]);
+    const above = pp => levelAtLeast(pp, L, tiUp, 1000), here = pp => r === 1 || levelAtLeast(pp, L, tiHere, 1000);
+    let x = null, a = null, y = null;
+    const withX = X => Object.assign({}, p, {X});
+    if (!above(withX(0))){
+      let lo = 0, hi = p.X;
+      for (let k = 0; k < 16 && hi - lo > 10; k++){ const mid = (lo + hi) / 2; if (above(withX(mid))) hi = mid; else lo = mid; }
+      const v = Math.floor(lo / 10) * 10;
+      if (here(withX(v))) x = v;
+    }
+    const atAge = ra => Object.assign({}, p, {retire: ra, years: ra - p.age});
+    if (p.retire - 1 > p.age && !above(atAge(p.age + 1))){
+      let lo = p.age + 1, hi = p.retire;
+      while (hi - lo > 1){ const mid = (lo + hi) >> 1; if (above(atAge(mid))) hi = mid; else lo = mid; }
+      if (here(atAge(lo))) a = lo;
+    }
+    const scaled = f => Object.assign({}, p, {spend: p.spend * f, steps: p.steps.map(st => ({age: st.age, amt: st.amt * f}))});
+    if (p.spend > 0){
+      let lo = 1, hi = 2;
+      while (above(scaled(hi)) && hi < 20) hi *= 2;
+      if (!above(scaled(hi))){
+        for (let k = 0; k < 14; k++){ const mid = (lo + hi) / 2; if (above(scaled(mid))) lo = mid; else hi = mid; }
+        const v = Math.ceil(p.spend * hi / 10) * 10;
+        if (here(scaled(hi))) y = v;
+      }
+    }
+    return {x, a, y};
+  }
+  // the money-today part of a path: up means what to fix, down means what it would look like
+  function healthPath(h){
+    const c = rkCtx, bad = ITEMS.filter(i => i.st === 'bad'), okI = ITEMS.filter(i => i.st === 'ok'), goodN = ITEMS.filter(i => i.st === 'good').length;
+    const PRIO = ['Left', 'Cash', 'Exp', 'Job', 'HomePay', 'CarPay', 'KidCost', 'Health', 'Life', 'Fit', 'CarNeed', 'Other', 'Debt', 'Rate', 'BigPay', 'School', 'HomeIns', 'Income', 'CarIns', 'Will', 'Critical', 'Accident', 'House', 'Car', 'Sp'];
+    const order = arr => arr.slice().sort((a, b) => (PRIO.indexOf(a.key) + 99) % 99 - (PRIO.indexOf(b.key) + 99) % 99);
+    const names = (arr, n) => { const q = k => { const row = $('rw' + k); return row ? row.querySelector('.q').textContent : k; };
+      const list = order(arr).slice(0, n || arr.length), shown = list.slice(0, 3).map(i => q(i.key)).join(t('lv.sep')); return list.length > 3 ? shown + t('lv.more', {n: list.length - 3}) : shown; };
+    if (h === c.hl) return t('rk.same');
+    if (h < c.hl) return t('rk.hDown', {cond: t('rk.hd.' + h)});
+    const parts = [];
+    if (c.hl === 1) parts.push(t('rk.hLeft', {x: money(Math.max(0, -(c.left || 0)))}));
+    const fixN = h >= 4 ? bad.length : (h === 3 ? Math.max(0, bad.length - 2) : 0);
+    if (fixN > 0) parts.push(t('rk.hFix', {n: fixN, items: names(bad, fixN)}));
+    if (h === 5){ const k = Math.max(0, Math.ceil((okI.length + bad.length - goodN) / 2)); if (k > 0) parts.push(t('rk.hOk', {k})); }
+    return parts.length ? parts.join(t('rk.then')) : t('rk.same');
+  }
+  const waysText = (w, down) => {
+    const pp = rkCtx.p, ways = [];
+    if (w.x !== null) ways.push(down ? (w.x <= 0 ? t('dn.x0') : t('dn.x', {x: money(w.x)})) : t(pp.pay > 0 && w.x > pp.pay ? 'how.xOver' : 'how.x', {x: money(w.x)}));
+    if (w.a !== null) ways.push(t('how.a', {a: w.a}));
+    if (w.y !== null) ways.push(t('how.y', {y: money(w.y)}));
+    return ways.length ? ways.join(t('lv.howOr')) : t(down ? 'rk.downNone' : 'rk.mix');
+  };
+  // the retirement part: worked out on tap (it runs the market test), then the card is drawn again
+  function retPath(n){
+    const c = rkCtx, god = n === GOD, r = god ? 4 : RANKS[n].r;
+    if (god ? c.dyn : r === c.rl) return t('rk.same');
+    const key = god ? 'god' : 'r' + r;
+    if (!rkCache.done[key]){
+      if (!rkCache.busy){
+        rkCache.busy = true;
+        const mine = rkCache;
+        setTimeout(() => {
+          if (rkCache !== mine) return;
+          mine.done[key] = god ? waysTo(c.p, c.L, 0) : (r > c.rl ? waysTo(c.p, c.L, LEVELS.fut.indexOf(FUT_OF_RL[r])) : waysDown(c.p, c.L, r));
+          mine.busy = false;
+          renderRankInfo();
+        }, 30);
+      }
+      return t('busy');
+    }
+    return waysText(rkCache.done[key], !god && r < c.rl);
+  }
+  function rankPath(n){
+    const c = rkCtx;
+    if (!c || c.n === null) return '<p>' + esc(t('rk.howWait')) + '</p>';
+    if (n === c.n) return '<p>' + esc(t('rk.howHere')) + '</p>';
+    if (n === LABOUR) return '<p>' + esc(t('rk.howLabour')) + '</p>';
+    if (c.n === LABOUR) return '<p>' + esc(t('rk.howUntick')) + '</p>';
+    const god = n === GOD, rk = RANKS[n];
+    const retLine = t('rk.line', {label: t('adv.ret'), lvl: god ? t('fut.dyn.h') : t('lr.' + rk.r), text: retPath(n)});
+    const hl = god ? (ITEMS.every(i => i.st === 'good' || i.st === 'na') ? t('rk.same') : t('rk.hAll', {n: ITEMS.filter(i => i.st === 'ok' || i.st === 'bad').length}))
+      : healthPath(rk.h);
+    const hLine = t('rk.line', {label: t('adv.health'), lvl: god ? t('today.gold.h') : t('lh.' + rk.h), text: hl});
+    return '<p>' + esc(retLine) + '</p><p>' + esc(hLine) + '</p>';
+  }
   function renderRankInfo(){
     const box = $('rankInfo');
     if (rankSel === null){ box.hidden = true; return; }
@@ -1130,7 +1219,8 @@
     box.hidden = false;
     box.innerHTML = '<div class="ri" style="background:' + tierBg(rankSel) + '">' + ICONS[rk.k] + '</div><div><p class="rl">' + esc(t('adv.level', {n: rankSel, total: TOP})) + '</p><p class="rpgname">' + esc(t('rk.' + rk.k)) +
       '</p><p class="rpgdesc">' + esc(t('rk.' + rk.k + '.d')) + '</p><p class="note" style="margin:6px 0 0">' +
-      esc(rankSel === GOD ? t('adv.comboGod') : rankSel === LABOUR ? t('adv.comboLabour') : t('adv.combo', {r: t('lr.' + rk.r), h: t('lh.' + rk.h)})) + '</p></div>';
+      esc(rankSel === GOD ? t('adv.comboGod') : rankSel === LABOUR ? t('adv.comboLabour') : t('adv.combo', {r: t('lr.' + rk.r), h: t('lh.' + rk.h)})) + '</p>' +
+      '<div class="rkhow privrow"><p class="rkhowh">' + esc(t('rk.howH')) + '</p>' + rankPath(rankSel) + '</div></div>';
   }
 
 
