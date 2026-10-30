@@ -521,5 +521,19 @@ MMA.i18n.en = {
   's.carDebt': 'Of which car loan',
   'm.other.tCar': 'You owe {x} apart from your home, including {c} on your car. Leaving the car loan aside (it’s checked with your car below), the rest is about {n} months of take-home pay.',
   'm.other.carOnly': 'Apart from your home, the only debt is your car loan of {c}, checked with your car below.',
-  'm.car.left': 'You still owe {x} on it: roughly {n} more months at this repayment.'
+  'm.car.left': 'You still owe {x} on it: roughly {n} more months at this repayment.',
+  'how.x': 'invest {x} a month',
+  'how.xOver': 'invest {x} a month (more than your take-home pay)',
+  'how.a': 'retire at {a}',
+  'how.y': 'spend {y} a month in retirement',
+  'lv.howT': 'To get here: {ways}.',
+  'lv.howOr': ', or ',
+  'lv.howNone': 'Not with one change alone: it would take a mix of investing more, retiring later and spending less.',
+  'lv.howNote': 'Each way works on its own, with everything else as it is now. Investing is per month from now until you retire; spending is in today’s prices.',
+  'lv.fixBad': 'To get here: sort out the {n} that need attention ({items}).',
+  'lv.fixBadOk': 'To get here: sort out the {n} that need attention, then turn {k} Okay into Healthy.',
+  'lv.fixOk': 'To get here: turn {k} Okay into Healthy, for example {items}.',
+  'lv.fixAll': 'To get here: make all {n} remaining checks Healthy ({items}).',
+  'lv.sep': ', ',
+  'lv.more': ' and {n} more'
 };

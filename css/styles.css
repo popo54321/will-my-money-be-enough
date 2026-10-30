@@ -300,3 +300,7 @@ h2.big::before{content:"";flex:none;width:14px;height:14px;border-radius:50% 0 5
 .gobtns{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;}
 .btn2.bigalt{font-size:1.05rem;font-weight:800;padding:12px 24px;border-radius:24px;}
 .verdict .more{margin:12px 0 18px;}
+.lvhow{margin:6px 0 0 !important;font-size:.85rem;font-weight:700;color:var(--keep-ink);}
+.lvhow:empty{display:none;}
+.lvhownote{margin:8px 0 0;font-size:.78rem;color:var(--muted);}
+.lvhownote:empty{display:none;}

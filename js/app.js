@@ -470,35 +470,92 @@
   }
 
   /* ---------- the next step up on Your future ---------- */
-  // The Your future level for a changed plan at the same live-to age (a smaller market test, to stay quick).
-  function futureLevel(pp, L){
-    const R2 = compute(pp, pp.years, L), q2 = R2.q;
-    if (!ok(q2, R2.keep, R2.nL)) return 'bad';
-    const c = monteCarlo(q2, R2.nL, 400, false).chance;
-    if (c < 0.75) return 'ok';
-    if (!(c >= 0.99 && ok(q2, R2.shock, R2.nL))) return 'good';
-    const G = godTest(pp);
-    return G.ok ? 'dyn' : 'gold';
-  }
-  // Two ways to reach the next level up: retiring later (up to 15 years), or spending less in retirement.
+  // The next level up: retiring later or spending less (the same search as the levels list, so the two always agree).
   function nextStep(p, L, fs){
     const LV = LEVELS.fut, i = LV.indexOf(fs);
     if (i <= 0) return null;
-    const target = LV[i - 1], reaches = pp => LV.indexOf(futureLevel(pp, L)) <= i - 1;
-    let age = null;
-    for (let ra = p.retire + 1; ra <= Math.min(p.retire + 15, 105, L - 1); ra++){
-      if (reaches(Object.assign({}, p, {retire: ra, years: ra - p.age}))){ age = ra; break; }
+    const w = waysTo(p, L, i - 1);
+    return {target: LV[i - 1], age: w.a, spend: w.y};
+  }
+
+  /* ---------- what it takes to reach any Your future level ---------- */
+  // Does this plan reach at least level ti of LEVELS.fut (0 = top)? A lighter check than compute(), with a smaller market test.
+  function levelAtLeast(pp, L, ti, paths){
+    const forever = L > MAX_AGE, q = makeModel(pp, forever), nL = forever ? FH : (L - pp.retire) * 12;
+    if (nL <= 0 || !ok(q, run(q, {stop: q.H}), nL)) return false;
+    if (ti >= 3) return true;
+    const c = monteCarlo(q, nL, paths || 400, false).chance;
+    if (ti === 2) return c >= 0.75;
+    if (!(c >= 0.99 && ok(q, run(q, {stop: q.H, shockAt: q.H, shock: pp.fall}), nL))) return false;
+    return ti === 1 || godTest(pp).ok;
+  }
+  // Three ways to reach level ti, each on its own with everything else unchanged:
+  // invest more each month, retire later (up to 15 years), or spend less in retirement (never below half).
+  function waysTo(p, L, ti){
+    // a quick search with 400 possible futures, then each answer is confirmed with all 1,000, as the page judges your level
+    const reach = pp => levelAtLeast(pp, L, ti), sure = pp => levelAtLeast(pp, L, ti, 1000);
+    let x = null;
+    {
+      const at = X => reach(Object.assign({}, p, {X}));
+      let lo = p.X, hi = Math.max(1000, p.X * 2);
+      while (!at(hi) && hi < 1e8){ lo = hi; hi *= 2; }
+      if (hi < 1e8 || at(hi)){
+        for (let k = 0; k < 14 && hi - lo > 10; k++){ const mid = (lo + hi) / 2; if (at(mid)) hi = mid; else lo = mid; }
+        x = Math.ceil(hi / 10) * 10;
+        for (let k = 0; k < 40 && !sure(Object.assign({}, p, {X: x})); k++) x = Math.ceil(x * 1.03 / 10) * 10;
+        if (!sure(Object.assign({}, p, {X: x}))) x = null;
+      }
     }
-    // spending scaled down (later spending steps too), largest amount that still gets there
+    let a = null;
+    const maxRa = Math.min(p.retire + 15, 105, L > MAX_AGE ? 105 : L - 1);
+    const atAge = ra => reach(Object.assign({}, p, {retire: ra, years: ra - p.age}));
+    if (maxRa > p.retire && atAge(maxRa)){
+      let lo = p.retire, hi = maxRa;
+      while (hi - lo > 1){ const mid = (lo + hi) >> 1; if (atAge(mid)) hi = mid; else lo = mid; }
+      a = hi;
+      while (a !== null && !sure(Object.assign({}, p, {retire: a, years: a - p.age}))) a = a < maxRa ? a + 1 : null;
+    }
+    let y = null;
     const scaled = f => Object.assign({}, p, {spend: p.spend * f, steps: p.steps.map(st => ({age: st.age, amt: st.amt * f}))});
-    let spend = null;
-    if (p.spend > 0 && reaches(scaled(0))){
-      let lo = 0, hi = 1;
-      for (let k = 0; k < 12; k++){ const mid = (lo + hi) / 2; if (reaches(scaled(mid))) lo = mid; else hi = mid; }
-      const y = Math.floor(p.spend * lo / 10) * 10;
-      if (y > 0 && y < p.spend && lo >= 0.5) spend = y;
+    if (p.spend > 0 && reach(scaled(0.5))){
+      let lo = 0.5, hi = 1;
+      for (let k = 0; k < 10; k++){ const mid = (lo + hi) / 2; if (reach(scaled(mid))) lo = mid; else hi = mid; }
+      let f = lo;
+      while (f >= 0.5 && !sure(scaled(f))) f -= 0.01;
+      const v = Math.floor(p.spend * f / 10) * 10;
+      if (f >= 0.5 && v > 0 && v < p.spend) y = v;
     }
-    return {target, age, spend};
+    return {x, a, y};
+  }
+  // Worked out one level at a time, only while the Your future list is open; a newer render cancels an older run.
+  let how = null;
+  function howText(st){
+    const r = how.done[st], pp = how.p;
+    if (!r) return t('busy');
+    const ways = [];
+    if (r.x !== null) ways.push(t(pp.pay > 0 && r.x > pp.pay ? 'how.xOver' : 'how.x', {x: money(r.x)}));
+    if (r.a !== null) ways.push(t('how.a', {a: r.a}));
+    if (r.y !== null) ways.push(t('how.y', {y: money(r.y)}));
+    return ways.length ? t('lv.howT', {ways: ways.join(t('lv.howOr'))}) : t('lv.howNone');
+  }
+  function fillHow(){
+    if (!how) return;
+    document.querySelectorAll('#lvFuture .lvhow').forEach(el => { el.textContent = howText(el.dataset.lv); });
+  }
+  function startHow(){
+    if (!how || how.running || !$('lvFuture').closest('details').open) return;
+    const LV = LEVELS.fut, todo = LV.slice(0, LV.indexOf(how.fs)).reverse().filter(st => !how.done[st]);
+    if (!todo.length){ fillHow(); return; }
+    const mine = how;
+    mine.running = true; fillHow();
+    const step = () => {
+      if (how !== mine) return;
+      const st = todo.shift();
+      mine.done[st] = waysTo(mine.p, mine.L, LV.indexOf(st));
+      fillHow();
+      if (todo.length) setTimeout(step, 0); else mine.running = false;
+    };
+    setTimeout(step, 30);
   }
 
   /* ---------- God Emperor test ---------- */
@@ -1201,12 +1258,14 @@
   // "See all levels" under each At a glance card: every level, best first, with where you are and how far from the top
   // Your future has one more level at the top: the God Emperor's money test
   const LEVELS = {fut: ['dyn', 'gold', 'good', 'ok', 'bad'], today: ['gold', 'good', 'ok', 'bad']};
-  function renderLevels(id, head, desc, cur, vars){
+  // how: optional {level: text} for the levels above yours (the what-it-takes lines)
+  function renderLevels(id, head, desc, cur, vars, howFor){
     const LV = LEVELS[head], pos = LV.indexOf(cur);
     $(id).innerHTML = LV.map((st, i) => '<li' + (st === cur ? ' class="here"' : '') + '><span class="lvdot" style="background:' + ST_COL[st] + '"></span><div><p class="lvname">' +
       esc(t(head + '.' + st + '.h')) + (st === cur ? '<span class="lvhere">' + esc(t('lv.here')) + '</span>' : '') + '</p><p class="lvdesc">' + esc(t(desc + (LV.length - i), vars)) + '</p>' +
       // a kind word under Rock solid: from here, money isn't the thing to worry about
-      (head === 'fut' && st === 'gold' ? '<p class="lvnote">' + esc(t('lv.f4.note')) + '</p>' : '') + '</div></li>').join('');
+      (head === 'fut' && st === 'gold' ? '<p class="lvnote">' + esc(t('lv.f4.note')) + '</p>' : '') +
+      (howFor && pos > 0 && i < pos ? '<p class="lvhow privrow" data-lv="' + st + '">' + esc(howFor(st)) + '</p>' : '') + '</div></li>').join('');
     $(id + 'Foot').textContent = pos < 0 ? '' : (pos === 0 ? t('lv.top') : t(pos === 1 ? 'lv.step1' : 'lv.steps', {n: pos}));
   }
   function stPill(id, st){
@@ -1401,8 +1460,26 @@
       $('scTodayT').textContent = t('today.t', {g: cnt.good, o: cnt.ok, b: cnt.bad});
     }
     $('scTodayH').textContent = th;
-    renderLevels('lvFuture', 'fut', 'lv.f', fs, {f: pct(p.fall)});
-    renderLevels('lvToday', 'today', 'lv.t', ts);
+    // what it takes to reach each level above yours: Your future is worked out when its list is opened, Your money today straight away
+    const futHow = goal && !p.noRetire && LEVELS.fut.indexOf(fs) > 0;
+    const howKey = futHow ? JSON.stringify(readRaw()) + '|' + R.L + '|' + fs : null;
+    if (!futHow) how = null;
+    else if (!how || how.key !== howKey) how = {key: howKey, p, L: R.L, fs, done: {}, running: false};
+    renderLevels('lvFuture', 'fut', 'lv.f', fs, {f: pct(p.fall)}, futHow ? st => (how.done[st] ? howText(st) : (how.running ? t('busy') : '')) : null);
+    $('lvHowNote').textContent = futHow ? t('lv.howNote') : '';
+    if (futHow) startHow();
+    const bad = ITEMS.filter(i => i.st === 'bad'), okI = ITEMS.filter(i => i.st === 'ok'), goodN = ITEMS.filter(i => i.st === 'good').length;
+    const names = arr => { const q = k => { const row = $('rw' + k); return row ? row.querySelector('.q').textContent : k; };
+      const shown = arr.slice(0, 3).map(i => q(i.key)).join(t('lv.sep')); return arr.length > 3 ? shown + t('lv.more', {n: arr.length - 3}) : shown; };
+    const todayHow = st => {
+      if (st === 'ok') return t('lv.fixBad', {n: bad.length, items: names(bad)});
+      if (st === 'good'){
+        const k = Math.max(0, Math.ceil((okI.length + bad.length - goodN) / 2));
+        return bad.length ? (k ? t('lv.fixBadOk', {n: bad.length, k}) : t('lv.fixBad', {n: bad.length, items: names(bad)})) : t('lv.fixOk', {k: Math.max(1, k), items: names(okI)});
+      }
+      return t('lv.fixAll', {n: bad.length + okI.length, items: names(bad.concat(okI))});
+    };
+    renderLevels('lvToday', 'today', 'lv.t', ts, null, (I !== null && S !== null && !missing.length) ? todayHow : null);
     $('scToday').style.setProperty('--sc', ST_COL[ts] || 'var(--line)');
     $('smCounts').innerHTML = (total && I !== null && S !== null) ? ['good', 'ok', 'bad'].map(k => '<span style="background:' + ST_COL[k] + '">' + esc(t('cnt.' + k, {n: cnt[k]})) + '</span>').join('') : '';
     $('hideAmts').checked = ui.hideAmts;
@@ -1699,7 +1776,7 @@
       // Levels only get easier as the live-to age comes down, so search for the oldest age (100 at most) that reaches a better level.
       if (fsNow && R.L > 100){
         const LV = LEVELS.fut, now = LV.indexOf(fsNow), lo0 = Math.max(p.retire, p.age) + 1;
-        const better = a => LV.indexOf(futureLevel(p, a)) < now;
+        const better = a => levelAtLeast(p, a, now - 1);
         if (now > 0 && lo0 <= 100 && better(lo0)){
           let lo = lo0, hi = 100;
           while (lo < hi){ const mid = Math.ceil((lo + hi) / 2); if (better(mid)) lo = mid; else hi = mid - 1; }
@@ -1759,6 +1836,7 @@
     if (window.Chart && potChart) buildCharts();
     render();
   });
+  $('lvFuture').closest('details').addEventListener('toggle', e => { if (e.target.open) startHow(); });
   $('tabCalc').addEventListener('click', () => showTab('calc'));
   $('tabDet').addEventListener('click', () => showTab('det'));
   $('tabSum').addEventListener('click', () => showTab('sum'));

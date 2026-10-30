@@ -20,6 +20,7 @@ A static, no-build web app: "Will My Money Be Enough?", a gamified retirement an
   - `monteCarlo()`: 1,000 seeded random possible futures for the markets.
   - `godTest()`: the God Emperor check, 5× spending, pot never shrinks after retirement.
   - `payFor()` and `payToLast()`: searches for the monthly amount needed.
+  - `levelAtLeast()` and `waysTo()`: what it takes to reach any Your future level (invest more, retire later, or spend less, never below half). A quick 400-future search, then each answer is confirmed with all 1,000, so it always matches the level the page shows. `nextStep()` uses the same search. The levels list works these out only when it's opened (`startHow()`), one level at a time; the lines are `privrow`, so they never reach the shared image.
   - `render*()`: one function per section.
   - `renderSummary()` and `renderAdventurer()`: the Result tab (`pageSum`, `ui.tab = 'sum'`) and ranks.
   - `buildImage()`: the shareable PNG.
