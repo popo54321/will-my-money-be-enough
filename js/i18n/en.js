@@ -16,7 +16,7 @@ MMA.i18n.en = {
   'ck.bigPay.loan.t': 'A big loan means years of repayments. Think about whether to wait, choose something cheaper, or save up first.',
   'img.btn': 'Save full image', 'share.btn': 'Share', 'img.making': 'Making your image…', 'img.fail': 'Couldn’t make the image this time. Please try again.', 'pdf.date': 'Made on {d}',
   'share.saved': 'Image saved. Post it in your favourite app to share it.', 'share.text': 'I’m a Level {n} {name} on my money adventure!',
-  'img.private': 'Shared images are the short version and never show money amounts. Saved images leave out the amounts you’d need to level up, so they’re safe to share too. The short image leaves out the Your future table, so it fits a phone screen.',
+  'img.private': 'Shared images are the short version and never show money amounts. Saved images leave out the amounts you’d need to level up, so they’re safe to share too. The full image is landscape, for a computer screen; the short one leaves out the Your future table, so it fits a phone screen.',
   'adv.h': 'Your adventurer', 'adv.level': 'Level {n} of {total}', 'adv.ret': 'Will it be enough?', 'adv.health': 'Money life today', 'adv.next': 'Next quests',
   'adv.all': 'See all 22 adventurers', 'adv.you': 'You', 'adv.lv': 'Lv {n}', 'adv.unknown': 'Your adventurer awaits',
   'adv.needRet': 'Add your spending after retirement in the calculator.', 'adv.needToday': 'Add your take-home pay and spending now in the calculator.', 'adv.wait': 'Reading the stars…',

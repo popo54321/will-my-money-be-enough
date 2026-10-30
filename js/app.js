@@ -1231,16 +1231,23 @@
     return new Promise((res, rej) => { const el = document.createElement('script'); el.src = src; el.onload = res; el.onerror = rej; document.head.appendChild(el); });
   }
   // safe: leave out every money amount, whatever the tick box says (used for sharing)
-  // short: leave out the Your future table, for an image that fits a phone screen (sharing always uses it)
+  // short: a tall image without the Your future table, to fit a phone screen (sharing always uses it).
+  // Full: a landscape image, with the adventurer, At a glance and Your future side by side under the title.
   async function buildImage(safe, short){
     if (!window.html2canvas) await loadScript(H2C);
     const bg = css('--bg') || '#FBF6EA';
     const wrap = document.createElement('div');
-    wrap.style.cssText = 'position:fixed;left:-12000px;top:0;width:720px;padding:24px 28px 28px;background:' + bg + ';';
+    wrap.style.cssText = 'position:fixed;left:-12000px;top:0;width:' + (short ? 720 : 1600) + 'px;padding:24px 28px 28px;background:' + bg + ';';
     const head = document.createElement('div');
-    head.innerHTML = '<div class="hero">' + document.querySelector('.hero').innerHTML + '</div><p class="note" style="margin:6px 0 0">' +
-      esc(t('pdf.date', {d: new Date().toLocaleDateString(HTML_LANG[LANG] || 'en-GB', {day: 'numeric', month: 'long', year: 'numeric'})})) + '</p><p class="heads" style="margin:10px 0 0">' + esc(t('heads')) + '</p>';
+    const date = '<p class="note" style="margin:6px 0 0">' + esc(t('pdf.date', {d: new Date().toLocaleDateString(HTML_LANG[LANG] || 'en-GB', {day: 'numeric', month: 'long', year: 'numeric'})})) + '</p>';
+    if (short) head.innerHTML = '<div class="hero">' + document.querySelector('.hero').innerHTML + '</div>' + date + '<p class="heads" style="margin:10px 0 0">' + esc(t('heads')) + '</p>';
+    else {
+      head.style.cssText = 'display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:center;';
+      head.innerHTML = '<div><div class="hero">' + document.querySelector('.hero').innerHTML + '</div>' + date + '</div><p class="heads" style="margin:0;max-width:none">' + esc(t('heads')) + '</p>';
+    }
     wrap.appendChild(head);
+    const cols = short ? null : document.createElement('div');
+    if (cols){ cols.style.cssText = 'display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;align-items:start;margin-top:20px;'; wrap.appendChild(cols); }
     [$('rpg'), $('scFuture').closest('section'), short ? null : $('smFuture').closest('section')].filter(Boolean).forEach(el => {
       const c = el.cloneNode(true);
       c.querySelectorAll('details, button').forEach(n => n.remove());
@@ -1249,8 +1256,14 @@
       c.querySelectorAll('.privrow').forEach(n => n.remove());
       if (safe || ui.hideAmts) c.querySelectorAll('.amtrow, .allranks').forEach(n => n.remove());
       c.querySelectorAll('[id]').forEach(n => n.removeAttribute('id'));
-      c.removeAttribute('id'); c.style.marginTop = '20px';
-      wrap.appendChild(c);
+      c.removeAttribute('id');
+      if (cols){
+        // in a column the two At a glance cards sit one above the other, and the Your future table gets a card of its own
+        c.style.marginTop = '0';
+        c.querySelectorAll('.sumcards').forEach(n => { n.style.gridTemplateColumns = '1fr'; });
+        if (c.classList.contains('part')){ c.style.cssText += ';margin-top:0;padding:20px;border:1px solid var(--line);border-radius:26px;background:var(--surface);'; }
+        cols.appendChild(c);
+      } else { c.style.marginTop = '20px'; wrap.appendChild(c); }
     });
     document.body.appendChild(wrap);
     try {
