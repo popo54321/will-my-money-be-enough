@@ -1,5 +1,5 @@
 // Opens the page in a headless browser, switches through every language and all three tabs, with the live-to
-// slider at 100 and at "Keep going forever", checks the answer-everything rule and the God Emperor,
+// slider at 100 and at "Keep going forever", checks the answer-everything rule, the God Emperor and an urgent problem,
 // and fails on script errors or untranslated keys. Run with: npm test
 import { chromium } from 'playwright';
 import { fileURLToPath } from 'node:url';
@@ -75,6 +75,17 @@ if (await rpgName() !== 'God Emperor') fail(`expected the God Emperor, got ${awa
 await page.selectOption('#sWill', 'no');
 await page.waitForTimeout(4000);
 if (await rpgName() !== 'The Emperor') fail(`one Okay answer should drop to The Emperor, got ${await rpgName()}`);
+
+// problems carry a weight: no health cover at all is urgent, so the same rock-solid future drops to At risk
+await page.selectOption('#sWill', 'yes'); await page.selectOption('#sHealth', 'no');
+await page.waitForTimeout(4000);
+{
+  const [name, step, tag] = await page.evaluate(() => [document.getElementById('rpgName').textContent, document.getElementById('rpgHealthName').textContent, (document.querySelector('#ptHealth .sevtag') || {}).textContent]);
+  if (name !== 'Cursed Sorcerer' || step !== 'At risk' || tag !== 'Urgent') fail(`no health cover should be urgent and give the Cursed Sorcerer (got ${name}, ${step}, ${tag})`);
+}
+if (await page.evaluate(() => document.querySelectorAll('#rankGrid .rk').length) !== 30) fail('the adventurer grid should show 30 classes');
+await page.selectOption('#sHealth', 'yes');
+await page.waitForTimeout(3000);
 
 const rank = await page.evaluate(() => document.getElementById('rpgName').textContent);
 console.log('Adventurer shown:', rank);

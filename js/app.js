@@ -1009,23 +1009,72 @@
   const ICONS = window.MMA.icons;
   // level 0, The Labourer, is only for people who never retire (ticked “I’ll retire when I die”)
   const RANKS = [{r: 0, h: 0, k: 'labour'},
-    // Your future sets the band and money today the place in it, so a bad future never ranks high.
-    // Where bands meet, a better future with a hard month today sits just below a weaker future with healthy money
-    // (levels 9–12 and 14–17). Moving up either ladder always raises the level.
-    {r: 1, h: 1, k: 'wanderer'}, {r: 1, h: 2, k: 'smith'}, {r: 1, h: 3, k: 'rat'}, {r: 1, h: 4, k: 'bard'}, {r: 1, h: 5, k: 'lord'},
-    {r: 2, h: 1, k: 'pirate'}, {r: 2, h: 2, k: 'hedge'}, {r: 2, h: 3, k: 'squire'}, {r: 3, h: 1, k: 'prince'}, {r: 3, h: 2, k: 'pilgrim'},
-    {r: 2, h: 4, k: 'ranger'}, {r: 2, h: 5, k: 'knight'}, {r: 3, h: 3, k: 'druid'}, {r: 4, h: 1, k: 'dragon'}, {r: 4, h: 2, k: 'monk'},
-    {r: 3, h: 4, k: 'priest'}, {r: 3, h: 5, k: 'king'}, {r: 4, h: 3, k: 'steward'}, {r: 4, h: 4, k: 'archmage'}, {r: 4, h: 5, k: 'emperor'},
-    // level 21 sits above The Emperor and is never reached through the two ladders alone, see renderAdventurer()
-    {r: 4, h: 5, k: 'god'}];
-  const GOD = RANKS.length - 1, TOP = RANKS.length - 1, LABOUR = 0;
+    // Your future (r, 1–4) sets the band and money today (h, 1–7) the place in it, so a bad future never ranks high.
+    // Where bands meet, serious trouble today (h 1–3) sits below the band underneath's healthy places (h 6–7),
+    // and lighter trouble (h 4–5) above them. Moving up either ladder always raises the level.
+    {r: 1, h: 1, k: 'wanderer'}, {r: 1, h: 2, k: 'smith'}, {r: 1, h: 3, k: 'miner'}, {r: 1, h: 4, k: 'rat'}, {r: 1, h: 5, k: 'innkeeper'}, {r: 1, h: 6, k: 'bard'}, {r: 1, h: 7, k: 'lord'},
+    {r: 2, h: 1, k: 'pirate'}, {r: 2, h: 2, k: 'hedge'}, {r: 2, h: 3, k: 'mercenary'}, {r: 2, h: 4, k: 'squire'}, {r: 2, h: 5, k: 'merchant'},
+    {r: 3, h: 1, k: 'prince'}, {r: 3, h: 2, k: 'pilgrim'}, {r: 3, h: 3, k: 'alchemist'},
+    {r: 2, h: 6, k: 'ranger'}, {r: 2, h: 7, k: 'knight'},
+    {r: 3, h: 4, k: 'druid'}, {r: 3, h: 5, k: 'sage'},
+    {r: 4, h: 1, k: 'dragon'}, {r: 4, h: 2, k: 'sorcerer'}, {r: 4, h: 3, k: 'monk'},
+    {r: 3, h: 6, k: 'priest'}, {r: 3, h: 7, k: 'king'},
+    {r: 4, h: 4, k: 'steward'}, {r: 4, h: 5, k: 'general'}, {r: 4, h: 6, k: 'archmage'}, {r: 4, h: 7, k: 'emperor'},
+    // the last level sits above The Emperor and is never reached through the two ladders alone, see renderAdventurer()
+    {r: 4, h: 7, k: 'god'}];
+  const GOD = RANKS.length - 1, TOP = RANKS.length - 1, LABOUR = 0, HL = 7;
   const rankOf = (r, h) => RANKS.findIndex(x => x && x.r === r && x.h === h);
+  const EMPEROR = rankOf(4, HL);
+  // icon backgrounds follow the level number, seven levels to a colour
   const TIER_BG = ['#EFE6D8', '#F7DFCB', '#D3EEDC', '#F6E6B4'], GOD_BG = '#EAE2FA';
-  const tierBg = n => n === GOD ? GOD_BG : n === LABOUR ? '#EDE3D3' : TIER_BG[Math.min(3, Math.floor((n - 1) / 5))];
+  const tierBg = n => n === GOD ? GOD_BG : n === LABOUR ? '#EDE3D3' : TIER_BG[Math.min(3, Math.floor((n - 1) / HL))];
   let ITEMS = [], lastQuest;
   function steps(n, total){ let h = ''; for (let i = 1; i <= total; i++) h += '<span' + (i <= n ? ' class="on"' : '') + '></span>'; return h; }
-  // the money-today ladder, 1 to 5, from what's left each month and the count of Healthy / Okay / Needs attention
-  const healthStep = (left, cnt) => left < 0 ? 1 : (cnt.bad >= 3 ? 2 : (cnt.bad >= 1 ? 3 : (cnt.ok > cnt.good ? 4 : 5)));
+  // how serious a Needs attention row is: 3 urgent, 2 important, 1 minor. Rows not listed are important;
+  // the emergency cash, repayments, interest and money-left rows set their own weight in renderSummary()
+  const SEV = {Health: 3, Rate: 1, Fit: 1, CarIns: 1, CarNeed: 1};
+  // the order to fix things in, within the same weight
+  const PRIO = ['Left', 'Cash', 'Exp', 'Job', 'HomePay', 'CarPay', 'KidCost', 'Health', 'Life', 'Fit', 'CarNeed', 'Other', 'Debt', 'Rate', 'BigPay', 'School', 'HomeIns', 'Income', 'CarIns', 'Will', 'Critical', 'Accident', 'House', 'Car', 'Sp'];
+  const byPrio = arr => arr.slice().sort((a, b) => (b.sev || 0) - (a.sev || 0) || (PRIO.indexOf(a.key) + 99) % 99 - (PRIO.indexOf(b.key) + 99) % 99);
+  // the problems by weight. A big home or car loan also pushes up the total repayments,
+  // so when the repayments row needs attention too, the loans count with it, once
+  function weights(items){
+    const debtBad = items.some(i => i.key === 'Debt' && i.st === 'bad'), w = {3: [], 2: [], 1: []};
+    items.forEach(i => { if (i.st === 'bad' && !(debtBad && (i.key === 'HomePay' || i.key === 'CarPay'))) w[i.sev || 2].push(i); });
+    [3, 2, 1].forEach(k => { w[k] = byPrio(w[k]); });
+    return w;
+  }
+  // the money-today ladder, 1 to 7. gap: take-home pay less spending and debt repayments, before investing
+  function healthStep(gap, items){
+    if (gap < 0) return 1;
+    const w = weights(items), okN = items.filter(i => i.st === 'ok').length, goodN = items.filter(i => i.st === 'good').length;
+    return w[3].length ? 2 : (w[2].length >= 2 ? 3 : (w[2].length ? 4 : (w[1].length ? 5 : (okN > goodN ? 6 : 7))));
+  }
+  // what it takes to climb from step cur to step h: spend less than you take home, then fix by weight, then turn Okay into Healthy
+  function healthUp(cur, h, gap, X){
+    const parts = [];
+    let its = ITEMS;
+    if (cur === 1){
+      parts.push(t('rk.hLeft', {x: money(Math.max(0, -gap))}));
+      // with the spending fixed, what you invest can still leave the month short: an important problem
+      its = ITEMS.map(i => i.key === 'Left' ? {key: 'Left', st: X > 0 ? 'bad' : 'ok', sev: 2} : i);
+    }
+    const w = weights(its), names = list => { const q = k => { const row = $('rw' + k); return row ? row.querySelector('.q').textContent : k; };
+      const shown = list.slice(0, 3).map(i => q(i.key)).join(t('lv.sep')); return list.length > 3 ? shown + t('lv.more', {n: list.length - 3}) : shown; };
+    const fix = (k, list) => { if (list.length) parts.push(t('rk.hFix.' + k, {n: list.length, items: names(list)})); };
+    if (h >= 3) fix(3, w[3]);
+    if (h === 4 && w[2].length > 1) fix(2, w[2].slice(0, w[2].length - 1));
+    if (h >= 5) fix(2, w[2]);
+    if (h >= 6) fix(1, w[1]);
+    if (h === 7){
+      // a fixed problem may only reach Okay, so count it there
+      const bad = its.filter(i => i.st === 'bad').length, okN = its.filter(i => i.st === 'ok').length, goodN = its.filter(i => i.st === 'good').length;
+      const k = Math.max(0, Math.ceil((okN + bad - goodN) / 2));
+      if (k > 0) parts.push(t('rk.hOk', {k}));
+    }
+    // Thai joins clauses with no space, so give a closing bracket room before the next word
+    return parts.length ? parts.join(t('rk.then')).replace(/\)(?=[^\s,.])/g, ') ') : t('rk.same');
+  }
   function renderAdventurer(p, R, c){
     const q = R.q, nL = R.nL, L = R.L;
     let rl = null, hl = null;
@@ -1035,16 +1084,15 @@
       if (!c.steadyOk) rl = 1;
       else if (lastChance !== null) rl = lastChance < 0.75 ? 2 : ((lastChance >= 0.99 && ok(q, R.shock, nL)) ? 4 : 3);
     }
-    if (c.I !== null && c.S !== null) hl = healthStep(c.left, c.cnt);
+    if (c.I !== null && c.S !== null) hl = healthStep(c.gap, ITEMS);
     // no adventurer until every question is answered
     let n = null;
     if (hl && !c.missing.length) n = p.noRetire ? LABOUR : (rl ? rankOf(rl, hl) : null);
-    const emperor = rankOf(4, 5);
-    if (n === emperor && c.perfect && R.god && R.god.ok) n = GOD;
+    if (n === EMPEROR && c.perfect && R.god && R.god.ok) n = GOD;
     $('rpgRetName').textContent = p.noRetire ? t('lr.never') : (rl ? t('lr.' + rl) : '–');
     $('rpgRetSteps').innerHTML = steps(rl || 0, 4);
     $('rpgHealthName').textContent = hl ? t('lh.' + hl) : '–';
-    $('rpgHealthSteps').innerHTML = steps(hl || 0, 5);
+    $('rpgHealthSteps').innerHTML = steps(hl || 0, HL);
     const icon = $('rpgIcon');
     if (n === null){
       icon.innerHTML = ICONS.unknown; icon.style.setProperty('--tierbg', '#F3EEE2');
@@ -1074,7 +1122,7 @@
       const qOf = it => { const el = $('rw' + it.key); return el ? el.querySelector('.q').textContent : ''; };
       if (n === LABOUR) quests.push({label: t('quest.ret'), to: RANKS[rankOf(1, hl)], text: t('quest.retNever')});
       else if (n === GOD) quests.push({label: t('quest.final'), top: true, god: true, text: t('quest.godTop')});
-      else if (n === emperor){
+      else if (n === EMPEROR){
         // the final quest: everything healthy, and a pot that never shrinks even at 5 times the spending
         const parts = [];
         if (!c.perfect){
@@ -1101,24 +1149,28 @@
           quests.push({label: t('quest.ret'), to, text});
         }
         // health quest
-        if (hl === 5) quests.push({label: t('quest.health'), top: true, text: t('quest.hTop')});
+        if (hl === HL) quests.push({label: t('quest.health'), top: true, text: t('quest.hTop')});
         else {
           const to = RANKS[rankOf(rl, hl + 1)];
           let text;
-          if (hl === 1) text = t('quest.h1', {x: money(-c.left)});
-          else if (hl <= 3){ const b = ITEMS.find(i => i.st === 'bad' && i.key !== 'Left'); text = b ? t('quest.h23', {item: qOf(b)}) : t('quest.h1', {x: money(Math.max(0, -c.left))}); }
-          else { const o = ITEMS.find(i => i.st === 'ok'); text = o ? t('quest.h4', {item: qOf(o)}) : ''; }
+          if (hl === 1) text = t('quest.h1', {x: money(-c.gap)});
+          else if (hl <= 5){
+            // the heaviest problem that holds this step down
+            const w = weights(ITEMS), b = (hl === 2 ? w[3] : (hl === 5 ? w[1] : w[2]))[0], one = w[3].length + w[2].length + w[1].length === 1;
+            text = b ? t(one ? 'quest.hOne' : 'quest.hFix', {item: qOf(b)}) : '';
+          }
+          else { const o = ITEMS.find(i => i.st === 'ok'); text = o ? t('quest.hOk', {item: qOf(o)}) : ''; }
           quests.push({label: t('quest.health'), to, text});
         }
       }
-      // when money today is in crisis or struggling, sort today out first, as the rank description says
-      if (hl !== null && hl <= 2 && quests.length === 2 && quests[1].label === t('quest.health')) quests.reverse();
+      // when money today is in crisis, at risk or struggling, sort today out first, as the rank description says
+      if (hl !== null && hl <= 3 && quests.length === 2 && quests[1].label === t('quest.health')) quests.reverse();
       $('rpgNextH').hidden = false;
       $('rpgQuests').innerHTML = quests.map(qq => '<div class="quest"><div class="qicon" style="background:' + (qq.to ? tierBg(RANKS.indexOf(qq.to)) : (qq.god ? GOD_BG : '#F6E6B4')) + '">' +
         (qq.to ? ICONS[qq.to.k] : (qq.god ? ICONS.god : ICONS.emperor)) + '</div><div><p class="qt">' + esc(qq.label) + '</p>' +
         (qq.to ? '<p class="qn">' + esc(t('quest.to', {name: t('rk.' + qq.to.k)})) + '</p>' : '') + '<p class="qa">' + esc(qq.text) + '</p></div></div>').join('');
     }
-    rkCtx = {p, L: R.L, rl, hl, n, dyn: rl === 4 && !!(R.god && R.god.ok), left: c.left, missing: c.missing.length, key: JSON.stringify(readRaw()) + '|' + R.L + '|' + rl + '|' + hl};
+    rkCtx = {p, L: R.L, rl, hl, n, dyn: rl === 4 && !!(R.god && R.god.ok), left: c.left, gap: c.gap, missing: c.missing.length, key: JSON.stringify(readRaw()) + '|' + R.L + '|' + rl + '|' + hl};
     if (!rkCache || rkCache.key !== rkCtx.key) rkCache = {key: rkCtx.key, done: {}};
     $('rankGrid').innerHTML = RANKS.map((rk, i) => '<button type="button" class="rk' + (i === n ? ' me' : '') + (i === GOD ? ' god' : '') + '" data-n="' + i + '" aria-pressed="' + (i === rankSel) + '"><span class="ri" style="background:' + tierBg(i) + '">' + ICONS[rk.k] +
       '</span><span class="rl">' + esc(t('adv.lv', {n: i})) + '</span><span class="rn">' + esc(t('rk.' + rk.k)) + '</span>' + (i === n ? '<span class="you">' + esc(t('adv.you')) + '</span>' : '') + '</button>').join('');
@@ -1161,19 +1213,10 @@
   }
   // the money-today part of a path: up means what to fix, down means what it would look like
   function healthPath(h){
-    const c = rkCtx, bad = ITEMS.filter(i => i.st === 'bad'), okI = ITEMS.filter(i => i.st === 'ok'), goodN = ITEMS.filter(i => i.st === 'good').length;
-    const PRIO = ['Left', 'Cash', 'Exp', 'Job', 'HomePay', 'CarPay', 'KidCost', 'Health', 'Life', 'Fit', 'CarNeed', 'Other', 'Debt', 'Rate', 'BigPay', 'School', 'HomeIns', 'Income', 'CarIns', 'Will', 'Critical', 'Accident', 'House', 'Car', 'Sp'];
-    const order = arr => arr.slice().sort((a, b) => (PRIO.indexOf(a.key) + 99) % 99 - (PRIO.indexOf(b.key) + 99) % 99);
-    const names = (arr, n) => { const q = k => { const row = $('rw' + k); return row ? row.querySelector('.q').textContent : k; };
-      const list = order(arr).slice(0, n || arr.length), shown = list.slice(0, 3).map(i => q(i.key)).join(t('lv.sep')); return list.length > 3 ? shown + t('lv.more', {n: list.length - 3}) : shown; };
+    const c = rkCtx;
     if (h === c.hl) return t('rk.same');
     if (h < c.hl) return t('rk.hDown', {cond: t('rk.hd.' + h)});
-    const parts = [];
-    if (c.hl === 1) parts.push(t('rk.hLeft', {x: money(Math.max(0, -(c.left || 0)))}));
-    const fixN = h >= 4 ? bad.length : (h === 3 ? Math.max(0, bad.length - 2) : 0);
-    if (fixN > 0) parts.push(t('rk.hFix', {n: fixN, items: names(bad, fixN)}));
-    if (h === 5){ const k = Math.max(0, Math.ceil((okI.length + bad.length - goodN) / 2)); if (k > 0) parts.push(t('rk.hOk', {k})); }
-    return parts.length ? parts.join(t('rk.then')) : t('rk.same');
+    return healthUp(c.hl, h, c.gap, xTotal(c.p));
   }
   const waysText = (w, down) => {
     const pp = rkCtx.p, ways = [];
@@ -1360,30 +1403,34 @@
 
   /* ---------- summary page ---------- */
   let lastChance = null, lastMC = null, lifeAt = null, nextHelp = null;
-  const ST_COL = {dyn: 'var(--dyn)', gold: 'var(--gold)', good: 'var(--keep-soft)', ok: 'var(--s1)', bad: 'var(--s2)'};
+  const ST_COL = {dyn: 'var(--dyn)', gold: 'var(--gold)', good: 'var(--keep-soft)', ok: 'var(--s1)', bad: 'var(--s2)',
+    h7: 'var(--keep-soft)', h6: 'var(--s1)', h5: 'var(--s1)', h4: 'var(--s2)', h3: 'var(--s2)', h2: 'var(--s2)', h1: 'var(--s2)'};
   // "See all levels" under each At a glance card: every level, best first, with where you are and how far from the top
   // Your future has one more level at the top: the God Emperor's money test
-  const LEVELS = {fut: ['dyn', 'gold', 'good', 'ok', 'bad'], today: ['gold', 'good', 'ok', 'bad']};
+  // Your money today uses the same seven steps as the adventurer's money-today ladder
+  const LEVELS = {fut: ['dyn', 'gold', 'good', 'ok', 'bad'], today: ['h7', 'h6', 'h5', 'h4', 'h3', 'h2', 'h1']};
   // how: optional {level: text} for the levels above yours (the what-it-takes lines)
   function renderLevels(id, head, desc, cur, vars, howFor){
     const LV = LEVELS[head], pos = LV.indexOf(cur);
     $(id).innerHTML = LV.map((st, i) => '<li' + (st === cur ? ' class="here"' : '') + '><span class="lvdot" style="background:' + ST_COL[st] + '"></span><div><p class="lvname">' +
-      esc(t(head + '.' + st + '.h')) + (st === cur ? '<span class="lvhere">' + esc(t('lv.here')) + '</span>' : '') + '</p><p class="lvdesc">' + esc(t(desc + (LV.length - i), vars)) + '</p>' +
+      esc(t(head === 'today' ? 'lh.' + st.slice(1) : head + '.' + st + '.h')) + (st === cur ? '<span class="lvhere">' + esc(t('lv.here')) + '</span>' : '') + '</p><p class="lvdesc">' + esc(t(desc + (LV.length - i), vars)) + '</p>' +
       // a kind word under Rock solid: from here, money isn't the thing to worry about
       (head === 'fut' && st === 'gold' ? '<p class="lvnote">' + esc(t('lv.f4.note')) + '</p>' : '') +
       (howFor && pos > 0 && i < pos ? '<p class="lvhow privrow" data-lv="' + st + '">' + esc(howFor(st)) + '</p>' : '') + '</div></li>').join('');
     $(id + 'Foot').textContent = pos < 0 ? '' : (pos === 0 ? t('lv.top') : t(pos === 1 ? 'lv.step1' : 'lv.steps', {n: pos}));
   }
-  function stPill(id, st){
+  function stPill(id, st, tag){
     const el = $(id);
-    el.textContent = t('st.' + st);
-    el.className = 'pill' + (ST_COL[st] ? '' : ' neutral');
+    el.innerHTML = esc(t('st.' + st)) + (tag ? '<span class="sevtag">' + esc(t(tag)) + '</span>' : '');
+    el.className = 'pill' + (ST_COL[st] ? '' : ' neutral') + (tag === 'sev.3' ? ' urgent' : '');
     el.style.setProperty('--pc', ST_COL[st] || 'transparent');
   }
-  function setCheck(key, st, text, show){
-    if (show !== false) ITEMS.push({key, st});
+  // sev: how serious a Needs attention row is (see SEV), when the row sets its own
+  function setCheck(key, st, text, show, sev){
+    const w = st === 'bad' ? (sev || SEV[key] || 2) : 0;
+    if (show !== false) ITEMS.push({key, st, sev: w});
     $('rw' + key).hidden = show === false;
-    stPill('pt' + key, st); $('at' + key).textContent = text;
+    stPill('pt' + key, st, w ? 'sev.' + w : ''); $('at' + key).textContent = text;
     return st;
   }
   function renderSummary(p, R){
@@ -1436,9 +1483,11 @@
     $('smFuture').innerHTML = rowsF.map(([a, b, c, cls]) => '<div class="rrow' + (cls ? ' ' + cls : '') + '"><span>' + esc(a) + (b ? '<span class="kvsub">' + esc(b) + '</span>' : '') + '</span><span>' + esc(c) + '</span></div>').join('');
 
     // ---- today ----
-    const left = (I !== null && S !== null) ? I - S - DP - X : null;
+    // gap: what's left before investing; short there is a crisis, short only because of investing is important
+    const gap = (I !== null && S !== null) ? I - S - DP : null, left = gap === null ? null : gap - X;
     if (left === null) miss('Left', t('m.left.na'));
-    else if (left < 0) today.push(setCheck('Left', 'bad', t('m.left.bad', {x: money(-left)})));
+    else if (gap < 0) today.push(setCheck('Left', 'bad', t('m.left.crisis', {x: money(-gap)}), true, 3));
+    else if (left < 0) today.push(setCheck('Left', 'bad', t('m.left.inv', {i: money(X), x: money(-left), y: money(Math.floor(gap / 10) * 10)}), true, 2));
     else if (left < 0.05 * I) today.push(setCheck('Left', 'ok', t('m.left.ok', {x: money(left)})));
     else today.push(setCheck('Left', 'good', t('m.left.good', {x: money(left)})));
     if (!I) { miss('Rate', t('m.na.pay')); miss('Debt', t('m.na.pay')); }
@@ -1446,10 +1495,10 @@
       const r = X / I;
       today.push(setCheck('Rate', r >= 0.15 ? 'good' : (r >= 0.10 ? 'ok' : 'bad'), t('m.rate.t', {p: pct(r)})));
       if (DP <= 0) today.push(setCheck('Debt', 'good', t('m.debt.none')));
-      else { const d = DP / I; today.push(setCheck('Debt', d < 0.25 ? 'good' : (d <= 0.36 ? 'ok' : 'bad'), t('m.debt.t', {p: pct(d)}))); }
+      else { const d = DP / I; today.push(setCheck('Debt', d < 0.25 ? 'good' : (d <= 0.36 ? 'ok' : 'bad'), join([t('m.debt.t', {p: pct(d)}), d > 0.5 ? t('m.debt.u') : '']), true, d > 0.5 ? 3 : 2)); }
     }
     if (S === null || (S + DP) <= 0) miss('Cash', t('m.cash.na'));
-    else { const n = C / (S + DP); today.push(setCheck('Cash', n >= 6 ? 'good' : (n >= 3 ? 'ok' : 'bad'), t('m.cash.t', {n: Math.round(n * 10) / 10}))); }
+    else { const n = C / (S + DP); today.push(setCheck('Cash', n >= 6 ? 'good' : (n >= 3 ? 'ok' : 'bad'), join([t('m.cash.t', {n: Math.round(n * 10) / 10}), n < 1 ? t('m.cash.u') : '']), true, n < 1 ? 3 : 2)); }
     const O = Math.max(0, D - M);
     if (O <= 0){ today.push(setCheck('Other', 'good', t('m.exp.none'))); setCheck('Exp', 'na', '', false); }
     else {
@@ -1457,7 +1506,9 @@
       // the car loan has its own check (with the car), so judge the rest: cards and other loans
       else if (CD > 0 && O - CD <= 0) today.push(setCheck('Other', 'good', t('m.other.carOnly', {c: money(CD)})));
       else { const n = (O - CD) / I; today.push(setCheck('Other', n <= 3 ? 'good' : (n <= 12 ? 'ok' : 'bad'), CD > 0 ? t('m.other.tCar', {x: money(O), c: money(CD), n: Math.round(n * 10) / 10}) : t('m.other.t', {x: money(O), n: Math.round(n * 10) / 10}))); }
-      today.push(setCheck('Exp', rate / 100 > p.growth ? 'bad' : 'good', t(rate / 100 > p.growth ? 'm.exp.bad' : 'm.exp.good', {r: pct(rate / 100), g: pct(p.growth)})));
+      // interest above the growth needs attention; at credit-card rates (15% or more) it's urgent
+      const dear = rate / 100 > p.growth;
+      today.push(setCheck('Exp', dear ? 'bad' : 'good', join([t(dear ? 'm.exp.bad' : 'm.exp.good', {r: pct(rate / 100), g: pct(p.growth)}), dear && rate >= 15 ? t('m.exp.u') : '']), true, rate >= 15 ? 3 : 2));
     }
 
     // ---- today vs tomorrow ----
@@ -1477,6 +1528,7 @@
     }
 
     // ---- life checklist ----
+    const debtBad = () => ITEMS.some(i => i.key === 'Debt' && i.st === 'bad');
     const SEL = {Job: 'sJob', House: 'sHouse', Car: 'sCar', CarNeed: 'sCarNeed', Deps: 'sDeps', Kids: 'sKids', School: 'sSchool', KidCost: 'sKidCost', Big: 'sBig', BigPay: 'sBigPay', Will: 'sWill', Health: 'sHealth', Life: 'sLife', HomeIns: 'sHomeIns', CarIns: 'sCarIns', Income: 'sIncomeIns', Critical: 'sCritical', Accident: 'sAccident'};
     const ck = (key, val, map, txt) => {
       const el = $(SEL[key]), opt = el && el.selectedIndex > 0 ? el.options[el.selectedIndex] : null;
@@ -1493,16 +1545,21 @@
     if (house === 'mortgage'){
       if (homePay === null) miss('HomePay', t('m.home.na'));
       else if (!I) miss('HomePay', t('m.na.pay'));
-      else { const r = homePay / I, st = (r > 0.4 || (left !== null && left < 0 && r > 0.3)) ? 'bad' : (r > 0.3 ? 'ok' : 'good'); today.push(setCheck('HomePay', st, t('m.home.' + st, {p: pct(r)}))); }
+      else {
+        const r = homePay / I, st = (r > 0.4 || (left !== null && left < 0 && r > 0.3)) ? 'bad' : (r > 0.3 ? 'ok' : 'good'), withDebt = st === 'bad' && debtBad();
+        today.push(setCheck('HomePay', st, join([t('m.home.' + st, {p: pct(r)}), withDebt ? t('m.loan.with') : ''])));
+        if (withDebt) stPill('ptHomePay', st, 'sev.with');
+      }
     }
     $('fdCarPay').hidden = $('rwCarPay').hidden = car !== 'loan';
     if (car === 'loan'){
       if (carPay === null) miss('CarPay', t('m.car.na'));
       else if (!I) miss('CarPay', t('m.na.pay'));
       else {
-        const r = carPay / I, st = (r > 0.2 || (left !== null && left < 0 && r > 0.1)) ? 'bad' : (r > 0.1 ? 'ok' : 'good');
+        const r = carPay / I, st = (r > 0.2 || (left !== null && left < 0 && r > 0.1)) ? 'bad' : (r > 0.1 ? 'ok' : 'good'), withDebt = st === 'bad' && debtBad();
         // what's still owed, and roughly how long at this repayment (car loans here usually quote the balance with interest included)
-        today.push(setCheck('CarPay', st, join([t('m.car.' + st, {p: pct(r)}), CD > 0 && carPay > 0 ? t('m.car.left', {x: money(CD), n: Math.ceil(CD / carPay)}) : ''])));
+        today.push(setCheck('CarPay', st, join([t('m.car.' + st, {p: pct(r)}), CD > 0 && carPay > 0 ? t('m.car.left', {x: money(CD), n: Math.ceil(CD / carPay)}) : '', withDebt ? t('m.loan.with') : ''])));
+        if (withDebt) stPill('ptCarPay', st, 'sev.with');
       }
     }
     // does the car fit the life? someone can own one they don't need, or need one they don't have
@@ -1558,12 +1615,14 @@
     const cnt = {good: 0, ok: 0, bad: 0};
     today.forEach(s => { if (cnt[s] !== undefined) cnt[s]++; });
     const total = cnt.good + cnt.ok + cnt.bad;
+    const hlNow = (total && I !== null && S !== null) ? healthStep(gap, ITEMS) : null, allGood = hlNow === HL && cnt.ok === 0 && !missing.length;
     let th, ts = 'na';
-    if (!total || I === null || S === null){ th = t('today.na.h'); $('scTodayT').textContent = t('today.na.t'); }
+    if (hlNow === null){ th = t('today.na.h'); $('scTodayT').textContent = t('today.na.t'); }
     else {
-      ts = cnt.bad > 0 ? 'bad' : (cnt.ok > cnt.good ? 'ok' : (cnt.ok === 0 && !missing.length ? 'gold' : 'good'));
-      th = t('today.' + ts + '.h');
-      $('scTodayT').textContent = t('today.t', {g: cnt.good, o: cnt.ok, b: cnt.bad});
+      ts = 'h' + hlNow;
+      th = allGood ? t('today.gold.h') : t('lh.' + hlNow);
+      const u = weights(ITEMS)[3].length;
+      $('scTodayT').textContent = t('today.t', {g: cnt.good, o: cnt.ok, b: cnt.bad, w: u ? t('today.u', {n: u}) : ''});
     }
     $('scTodayH').textContent = th;
     // what it takes to reach each level above yours: Your future is worked out when its list is opened, Your money today straight away
@@ -1574,36 +1633,24 @@
     renderLevels('lvFuture', 'fut', 'lv.f', fs, {f: pct(p.fall)}, futHow ? st => (how.done[st] ? howText(st) : (how.running ? t('busy') : '')) : null);
     $('lvHowNote').textContent = futHow ? t('lv.howNote') : '';
     if (futHow) startHow();
-    const bad = ITEMS.filter(i => i.st === 'bad'), okI = ITEMS.filter(i => i.st === 'ok'), goodN = ITEMS.filter(i => i.st === 'good').length;
-    const names = arr => { const q = k => { const row = $('rw' + k); return row ? row.querySelector('.q').textContent : k; };
-      const shown = arr.slice(0, 3).map(i => q(i.key)).join(t('lv.sep')); return arr.length > 3 ? shown + t('lv.more', {n: arr.length - 3}) : shown; };
-    const todayHow = st => {
-      if (st === 'ok') return t('lv.fixBad', {n: bad.length, items: names(bad)});
-      if (st === 'good'){
-        const k = Math.max(0, Math.ceil((okI.length + bad.length - goodN) / 2));
-        return bad.length ? (k ? t('lv.fixBadOk', {n: bad.length, k}) : t('lv.fixBad', {n: bad.length, items: names(bad)})) : t('lv.fixOk', {k: Math.max(1, k), items: names(okI)});
-      }
-      return t('lv.fixAll', {n: bad.length + okI.length, items: names(bad.concat(okI))});
-    };
-    renderLevels('lvToday', 'today', 'lv.t', ts, null, (I !== null && S !== null && !missing.length) ? todayHow : null);
-    $('scToday').style.setProperty('--sc', ST_COL[ts] || 'var(--line)');
+    renderLevels('lvToday', 'today', 'lv.t', ts, null, (hlNow !== null && !missing.length) ? st => healthUp(hlNow, +st.slice(1), gap, X) : null);
+    $('scToday').style.setProperty('--sc', allGood ? ST_COL.gold : (ST_COL[ts] || 'var(--line)'));
     $('smCounts').innerHTML = (total && I !== null && S !== null) ? ['good', 'ok', 'bad'].map(k => '<span style="background:' + ST_COL[k] + '">' + esc(t('cnt.' + k, {n: cnt[k]})) + '</span>').join('') : '';
     $('hideAmts').checked = ui.hideAmts;
     const perfect = cnt.good > 0 && cnt.ok === 0 && cnt.bad === 0;
-    const adv = renderAdventurer(p, R, {goal, steadyOk, I, S, left, cnt, missing, perfect});
+    const adv = renderAdventurer(p, R, {goal, steadyOk, I, S, left, gap, cnt, missing, perfect});
     // A very long live-to age (over 100, or forever) is a much harder test and drags the level down.
     // Once the background job has found the oldest live-to age that gives a better level (lifeAt), name that age,
     // and the level and rank the same plan gets there, so the note never promises what the slider won't show.
     let lifeNote = '';
     if (lifeAt){
       // "Can you afford what the plan needs?" also depends on the live-to age, so redo that one check at that age
-      const cntA = Object.assign({}, cnt), fitNow = ITEMS.find(i => i.key === 'Fit');
-      if (fitNow && cntA[fitNow.st] !== undefined) cntA[fitNow.st]--;
       const fitA = lifeAt.payL === null ? 'bad' : (lifeAt.steady ? 'good' : (left === null ? 'na' : (left >= lifeAt.payL - p.X ? 'good' : 'bad')));
-      if (cntA[fitA] !== undefined) cntA[fitA]++;
-      const hlA = (I !== null && S !== null) ? healthStep(left, cntA) : null;
+      const itemsA = ITEMS.filter(i => i.key !== 'Fit').concat(fitA === 'na' ? [] : [{key: 'Fit', st: fitA, sev: fitA === 'bad' ? SEV.Fit : 0}]);
+      const hlA = (I !== null && S !== null) ? healthStep(gap, itemsA) : null;
       let nA = (hlA && !missing.length) ? rankOf(lifeAt.rl, hlA) : 0;
-      if (nA === rankOf(4, 5) && cntA.good > 0 && cntA.ok === 0 && cntA.bad === 0 && R.god && R.god.ok) nA = GOD;
+      const perfA = itemsA.some(i => i.st === 'good') && !itemsA.some(i => i.st === 'ok' || i.st === 'bad');
+      if (nA === EMPEROR && perfA && R.god && R.god.ok) nA = GOD;
       if (LEVELS.fut.indexOf(lifeAt.fs) < LEVELS.fut.indexOf(fs) || nA > adv.n)
         lifeNote = join([t('life.note', {L, a: lifeAt.a, lvl: t('fut.' + lifeAt.fs + '.h')}), nA ? t('life.rank', {n: nA, name: t('rk.' + RANKS[nA].k)}) : '', t('life.try', {a: lifeAt.a})]);
     }
@@ -1626,10 +1673,9 @@
     const goods = GOOD.filter(k => st(k) === 'good').slice(0, 2).map(k => t('good.' + k));
     const hasProblems = ITEMS.some(i => i.st === 'ok' || i.st === 'bad');
     $('rpgGood').textContent = goods.length && hasProblems ? t('good.t', {items: goods.join(t('good.and'))}) : '';
-    // when several things need attention, point at the few that matter most
-    const PRIO = ['Left', 'Cash', 'Exp', 'Job', 'HomePay', 'CarPay', 'KidCost', 'Health', 'Life', 'Fit', 'CarNeed', 'Other', 'Debt', 'Rate', 'BigPay', 'School', 'HomeIns', 'Income', 'CarIns', 'Will', 'Critical', 'Accident', 'House', 'Car', 'Sp'];
-    const bads = PRIO.filter(k => st(k) === 'bad').slice(0, 3);
-    $('startHere').hidden = bads.length < 2;
+    // when several things need attention, point at the few that matter most: the heaviest first
+    const wt = weights(ITEMS), all = wt[3].concat(wt[2], wt[1]), bads = all.slice(0, 3).map(i => i.key);
+    $('startHere').hidden = all.length < 2;
     $('startList').innerHTML = bads.map(k => { const row = $('rw' + k); return '<li><a href="#rw' + k + '">' + esc(row ? row.querySelector('.q').textContent : k) + '</a></li>'; }).join('');
   }
   // three tabs: the Calculator (every question), the Details (the maths after retirement) and the Result

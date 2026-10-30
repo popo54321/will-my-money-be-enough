@@ -38,7 +38,7 @@ npm test                         # language check + headless browser smoke test
 | `index.html` | The page structure: Calculator, Details and Result tabs, all sections |
 | `css/styles.css` | All styles: cream and night colour looks, layout and print-free design |
 | `js/i18n/en.js`, `th.js`, `zh.js` | Every piece of text, one file per language |
-| `js/icons.js` | The 22 adventurer symbols, Level 0 to 21 (original SVG drawings) |
+| `js/icons.js` | The 30 adventurer symbols, Level 0 to 29 (original SVG drawings) |
 | `js/app.js` | Everything else: inputs, the money model, the market simulation, rendering, charts, the Result tab and adventurer ranks, and image export |
 | `manifest.webmanifest`, `sw.js`, `icons/` | The installable app: name and icons, and offline support |
 | `tests/` | The language check and the browser smoke test |
@@ -55,13 +55,14 @@ Libraries load from a CDN, with versions pinned: Chart.js 4.4.1 (jsDelivr), html
 - **Two people:** both pots are added together. If you invest differently, untick “Same growth as yours” and add your partner's growth and ups and downs; they're combined into one rate that gives the same pot at your retirement as growing each person's money separately.
 - **Market test:** 1,000 seeded random possible futures, built from your growth rates and yearly ups and downs. The growth rate is read as the typical compound yearly growth, so an average future ends close to steady growth. They're the same every run, so results don't jump about as you type.
 - **Keep going forever:** the live-to slider runs to 120, then one more step means forever. The page follows the money for 100 years after retirement; by then nothing changes, so the rest is worked out exactly: the money never runs out if the pot earns at least what you take out each month, otherwise the page gives the age it runs out, however far away.
-- **Adventurer rank:** two ladders put together. Your future sets the band and money today the place in it, so a future that runs out never goes above Level 5; where bands meet, a better future with a hard month today sits just below a weaker future with healthy money. Moving up either ladder always raises the level.
+- **Adventurer rank:** two ladders put together. Your future sets the band and money today the place in it, so a future that runs out never goes above Level 7. Where bands meet, serious trouble today (steps 1–3) sits below the band underneath's healthy places (steps 6–7), and lighter trouble (steps 4–5) above them. Moving up either ladder always raises the level. There are 30 classes: Level 0, 28 from the two ladders, and the God Emperor.
   - Retirement ladder: Runs out, Fragile, Secure, Unshakeable.
-  - Health ladder: In crisis, Struggling, Stretched, Steady, Thriving.
-  - At a glance: each card has "See all levels", listing every level from the top down, with where you are and how many steps are left. Your future: Dynastic Generational Wealth (the God Emperor's money test), Rock solid, On track, Close but fragile, Not on track yet. Your money today: Everything healthy, Looking healthy, Mostly fine, A few things need attention.
+  - Money-today ladder, 7 steps: In crisis (spending and debt repayments more than take-home pay, before investing), At risk (an urgent problem), Struggling (two or more important ones), Stretched (one important one), Nearly there (only minor ones), Steady (more Okay than Healthy), Thriving.
+  - Each Needs attention row has a weight. Urgent: under a month of emergency cash, repayments over half of take-home pay, debt at 15% a year or more, no health cover at all. Minor: investing under 10% of pay, a plan that needs more than you can spare, a car with no insurance, a car loan for a car you don't need. Everything else is important. Being short each month only because of what you invest is important, not a crisis. A home or car loan that's too big counts once with the total repayments. Start here and the money-today quest go heaviest first.
+  - At a glance: each card has "See all levels", listing every level from the top down, with where you are and how many steps are left. Your future: Dynastic Generational Wealth (the God Emperor's money test), Rock solid, On track, Close but fragile, Not on track yet. Your money today uses the same seven steps as the adventurer (Everything healthy when every check is Healthy).
   - Your future rows each say which kind of market they assume: steady growth, markets going up and down, or a bad run of markets (worse than 9 in 10 possible futures).
   - No rank until every question is answered. Follow-up questions (for example "Do you have enough money for it?" after big spending) stay greyed out until the question they follow is answered.
-  - God Emperor (level 21): The Emperor, plus every check on the Result tab Healthy (so renting, which counts as Okay, rules it out), plus a pot that, with steady growth, never gets smaller in any month of retirement even at 5 times your planned spending, up to 120 and forever after.
+  - God Emperor (level 29): The Emperor, plus every check on the Result tab Healthy (so renting, which counts as Okay, rules it out), plus a pot that, with steady growth, never gets smaller in any month of retirement even at 5 times your planned spending, up to 120 and forever after.
 
 ## Privacy
 
