@@ -28,6 +28,8 @@
         <a href="#s-today" data-t="sm.today"></a><a href="#s-life" data-t="sm.check.h"></a><a href="#s-ins" data-t="sm.ins.h"></a>
       </nav>
 
+  <div class="calcgrid">
+  <div class="calcside">
   <section class="panel" aria-labelledby="h-inputs">
     <h2 id="h-inputs" data-t="yourNumbers"></h2>
     <div class="grid four">
@@ -70,6 +72,8 @@
     <button class="reset" id="reset" type="button" data-t="reset"></button>
   </section>
 
+  </div>
+  <div class="calcmain">
   <section class="part" id="s-today" aria-labelledby="h-today">
     <h2 class="big" id="h-today" data-t="sm.today"></h2>
     <p class="intro" data-t="sm.today.intro"></p>
@@ -122,11 +126,15 @@
   </section>
 
   </div>
+  </div>
+  </div>
 
   <div id="pageDet" hidden>
+  <div class="detgrid">
       <nav class="toc" id="tocDet">
         <a href="#s-ret" data-t="toc.ret"></a><a href="#s-scen" data-t="toc.scen"></a><a href="#s-mkt" data-t="toc.mkt"></a><a href="#s-ages" data-t="toc.ages"></a><a href="#s-pay" data-t="toc.pay"></a><a href="#s-decide" data-t="toc.decide"></a><a href="#s-plans" data-t="toc.plans"></a>
       </nav>
+  <div class="detmain">
 
   <section class="part" id="s-ret" aria-labelledby="h-ret">
     <h2 class="big" id="h-ret" data-t="toc.ret"></h2>
@@ -361,8 +369,12 @@
     <button class="btn2 big" id="goSum2" type="button" data-t="sm.goSum"></button>
   </section>
   </div>
+  </div>
+  </div>
 
   <div id="pageSum" hidden>
+    <div class="sumgrid">
+    <div class="sumside">
     <section class="panel rpgpanel" id="rpg">
       <p class="dlabel" data-t="adv.h"></p>
       <div class="rpgtop"><div class="rpgicon" id="rpgIcon"></div><div><p class="rpglvl" id="rpgLvl"></p><p class="rpgname" id="rpgName"></p><p class="rpgdesc" id="rpgDesc"></p></div></div>
@@ -386,6 +398,8 @@
     <div class="pdfbar" id="pdfBar" hidden><p class="dlabel" style="flex-basis:100%;margin:0" data-t="share.title"></p><button class="btn2" id="shareBtn" type="button" hidden data-t="share.btn"></button><button class="btn2" id="imgBtn" type="button" hidden data-t="img.btn"></button><button class="btn2" id="imgShortBtn" type="button" hidden data-t="img.short"></button><p class="note" style="margin:0;flex-basis:100%" data-t="img.private"></p><label class="tog" style="flex-basis:100%"><input type="checkbox" id="hideAmts"> <span data-t="img.hide"></span></label><span class="busy" id="pdfMsg"></span>
       <div class="social" id="social" hidden><a data-s="x" target="_blank" rel="noopener">X</a><a data-s="fb" target="_blank" rel="noopener">Facebook</a><p class="note" data-t="social.note"></p></div></div>
 
+    </div>
+    <div class="summain">
     <section class="part">
       <h2 class="big" data-t="sm.future"></h2>
       <p class="intro" data-t="sm.future.intro"></p>
@@ -450,6 +464,8 @@
     </section>
     <button class="btn2" id="goCalc2" type="button" style="margin-top:18px" data-t="sm.goCalc2"></button>
     <p class="small" data-t="sm.disclaim"></p>
+    </div>
+    </div>
   </div>
 </main>
 
