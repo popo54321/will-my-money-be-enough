@@ -1009,15 +1009,18 @@
   const ICONS = window.MMA.icons;
   // level 0, The Labourer, is only for people who never retire (ticked “I’ll retire when I die”)
   const RANKS = [{r: 0, h: 0, k: 'labour'},
-    {r: 1, h: 1, k: 'wanderer'}, {r: 1, h: 2, k: 'smith'}, {r: 2, h: 1, k: 'pirate'}, {r: 1, h: 3, k: 'rat'}, {r: 2, h: 2, k: 'hedge'},
-    {r: 3, h: 1, k: 'prince'}, {r: 1, h: 4, k: 'bard'}, {r: 2, h: 3, k: 'squire'}, {r: 3, h: 2, k: 'pilgrim'}, {r: 4, h: 1, k: 'dragon'},
-    {r: 1, h: 5, k: 'lord'}, {r: 2, h: 4, k: 'ranger'}, {r: 3, h: 3, k: 'druid'}, {r: 4, h: 2, k: 'monk'}, {r: 2, h: 5, k: 'knight'},
-    {r: 3, h: 4, k: 'priest'}, {r: 4, h: 3, k: 'steward'}, {r: 3, h: 5, k: 'king'}, {r: 4, h: 4, k: 'archmage'}, {r: 4, h: 5, k: 'emperor'},
+    // Your future sets the band and money today the place in it, so a bad future never ranks high.
+    // Where bands meet, a better future with a hard month today sits just below a weaker future with healthy money
+    // (levels 9–12 and 14–17). Moving up either ladder always raises the level.
+    {r: 1, h: 1, k: 'wanderer'}, {r: 1, h: 2, k: 'smith'}, {r: 1, h: 3, k: 'rat'}, {r: 1, h: 4, k: 'bard'}, {r: 1, h: 5, k: 'lord'},
+    {r: 2, h: 1, k: 'pirate'}, {r: 2, h: 2, k: 'hedge'}, {r: 2, h: 3, k: 'squire'}, {r: 3, h: 1, k: 'prince'}, {r: 3, h: 2, k: 'pilgrim'},
+    {r: 2, h: 4, k: 'ranger'}, {r: 2, h: 5, k: 'knight'}, {r: 3, h: 3, k: 'druid'}, {r: 4, h: 1, k: 'dragon'}, {r: 4, h: 2, k: 'monk'},
+    {r: 3, h: 4, k: 'priest'}, {r: 3, h: 5, k: 'king'}, {r: 4, h: 3, k: 'steward'}, {r: 4, h: 4, k: 'archmage'}, {r: 4, h: 5, k: 'emperor'},
     // level 21 sits above The Emperor and is never reached through the two ladders alone, see renderAdventurer()
     {r: 4, h: 5, k: 'god'}];
   const GOD = RANKS.length - 1, TOP = RANKS.length - 1, LABOUR = 0;
   const rankOf = (r, h) => RANKS.findIndex(x => x && x.r === r && x.h === h);
-  const TIER_BG = ['#EFE6D8', '#E3EEDC', '#D6EEDF', '#F6E6B4'], GOD_BG = '#EAE2FA';
+  const TIER_BG = ['#EFE6D8', '#F7DFCB', '#D3EEDC', '#F6E6B4'], GOD_BG = '#EAE2FA';
   const tierBg = n => n === GOD ? GOD_BG : n === LABOUR ? '#EDE3D3' : TIER_BG[Math.min(3, Math.floor((n - 1) / 5))];
   let ITEMS = [], lastQuest;
   function steps(n, total){ let h = ''; for (let i = 1; i <= total; i++) h += '<span' + (i <= n ? ' class="on"' : '') + '></span>'; return h; }
